@@ -596,7 +596,7 @@ function buildWkTabs(){
 }
 function prevMo(){navMo--;if(navMo<0){navMo=11;navYr--;}document.getElementById('nav-mo').value=navMo;document.getElementById('nav-yr').value=navYr;buildWkTabs();}
 function nextMo(){navMo++;if(navMo>11){navMo=0;navYr++;}document.getElementById('nav-mo').value=navMo;document.getElementById('nav-yr').value=navYr;buildWkTabs();}
-function switchWk(key){activeWkKey=key;buildWkTabs();updBtn();renderTour();}
+function switchWk(key){activeWkKey=key;buildWkTabs();updBtn();renderTour();scheduleSave();}
 function resetWk(key){
   if(!confirm('Woche wirklich zurücksetzen?'))return;
   delete tours[key];
@@ -1394,20 +1394,16 @@ function closeBm(){const m=document.getElementById('bm');if(m)m.remove();}
 const loaded=loadState();
 if(!loaded){custs=DEF.map(c=>({...c}));}
 filt=[...custs];
-initNavSel();
-// Gespeicherten Monat/Jahr aus activeWkKey wiederherstellen
+// Gespeicherten Monat/Jahr aus activeWkKey VOR initNavSel setzen
 if(activeWkKey){
   const parts=activeWkKey.split('-');
   if(parts.length>=2){
     const yr=parseInt(parts[0]);
     const mo=parseInt(parts[1])-1;
-    if(!isNaN(yr)&&!isNaN(mo)){
-      navYr=yr;navMo=mo;
-      document.getElementById('nav-yr').value=yr;
-      document.getElementById('nav-mo').value=mo;
-    }
+    if(!isNaN(yr)&&!isNaN(mo)){navYr=yr;navMo=mo;}
   }
 }
+initNavSel(); // liest navYr/navMo — muss NACH der Wiederherstellung kommen
 buildRP();
 applyF();
 buildWkTabs();
