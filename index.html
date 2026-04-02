@@ -516,7 +516,7 @@ let currentWeeks=[];
 // ══ PERSISTENCE ═════════════════════════════════════════════════════════════
 function saveState(){
   try{
-    const state={custs,nid,tours,notes,templates,pinned:[...pinned],selected:[...selected]};
+    const state={custs,nid,tours,notes,templates,pinned:[...pinned],selected:[...selected],activeWkKey};
     localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
     showSaveInd();
   }catch(e){console.warn('Speichern fehlgeschlagen:',e);}
@@ -529,6 +529,7 @@ function loadState(){
     if(s.custs&&s.custs.length>0){
       custs=s.custs;nid=s.nid||61;
       tours=s.tours||{};notes=s.notes||{};templates=s.templates||[];
+      activeWkKey=s.activeWkKey||null;
       pinned=new Set(s.pinned||[]);selected=new Set(s.selected||[]);
       return true;
     }
@@ -1388,9 +1389,23 @@ const loaded=loadState();
 if(!loaded){custs=DEF.map(c=>({...c}));}
 filt=[...custs];
 initNavSel();
+// Gespeicherten Monat/Jahr aus activeWkKey wiederherstellen
+if(activeWkKey){
+  const parts=activeWkKey.split('-');
+  if(parts.length>=2){
+    const yr=parseInt(parts[0]);
+    const mo=parseInt(parts[1])-1;
+    if(!isNaN(yr)&&!isNaN(mo)){
+      navYr=yr;navMo=mo;
+      document.getElementById('nav-yr').value=yr;
+      document.getElementById('nav-mo').value=mo;
+    }
+  }
+}
 buildRP();
 applyF();
 buildWkTabs();
+if(activeWkKey){renderTour();updKPIs();}
 renderTplTab();
 document.getElementById('yr-label').textContent=viewYr2;
 </script>
