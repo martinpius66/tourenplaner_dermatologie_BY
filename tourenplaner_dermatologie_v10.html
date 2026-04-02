@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Tourenplaner Dermatologie Bayern v10</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0ede8;--white:#fff;--ink:#1a1a18;--muted:#6b6b67;--hint:#9b9b96;
+  --border:rgba(0,0,0,.1);--bl:rgba(0,0,0,.06);
+  --blue:#185FA5;--green:#27500A;--amber:#633806;--red:#791F1F;
+  --blue-bg:#E6F1FB;--green-bg:#EAF3DE;--amber-bg:#FAEEDA;--red-bg:#FCEBEB;
+  --dot-a:#378ADD;--dot-b:#639922;--dot-c:#BA7517;--dot-d:#E24B4A;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.app{display:grid;grid-template-columns:290px 1fr;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sb{background:var(--white);border-right:.5px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow:hidden}
+.sb-hd{padding:.8rem 1rem .6rem;border-bottom:.5px solid var(--border)}
+.sb-hd h2{font-size:13px;font-weight:500}
+.sb-hd p{font-size:10px;color:var(--muted);margin-top:1px}
+.fw{padding:.55rem 1rem;border-bottom:.5px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.fl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1px}
+.sr{display:flex;gap:3px}
+.xb{font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;border:1.5px solid transparent;cursor:pointer}
+.xb.sa{background:var(--blue-bg);color:var(--blue);border-color:#B5D4F4}
+.xb.sb2{background:var(--green-bg);color:var(--green);border-color:#C0DD97}
+.xb.sc{background:var(--amber-bg);color:var(--amber);border-color:#FAC775}
+.xb.sd{background:var(--red-bg);color:var(--red);border-color:#F7C1C1}
+.xb.off{opacity:.25;border-color:transparent}
+.rdd{position:relative}
+.rtrig{display:flex;align-items:center;justify-content:space-between;height:25px;padding:0 7px;border:.5px solid rgba(0,0,0,.18);border-radius:5px;background:var(--white);font-size:11px;cursor:pointer;user-select:none}
+.rpanel{display:none;position:absolute;top:27px;left:0;right:0;background:var(--white);border:.5px solid var(--border);border-radius:6px;z-index:200;padding:4px;max-height:190px;overflow-y:auto;box-shadow:0 4px 14px rgba(0,0,0,.1)}
+.rpanel.open{display:block}
+.rc{display:flex;align-items:center;gap:5px;padding:3px 4px;border-radius:3px;cursor:pointer;font-size:11px}
+.rc:hover{background:var(--bg)}
+.rc input{width:12px;height:12px;cursor:pointer;accent-color:var(--ink)}
+input[type=text],input[type=number],select,textarea{font-family:inherit;border:.5px solid rgba(0,0,0,.18);border-radius:5px;background:var(--white);color:var(--ink)}
+input[type=text],input[type=number],select{height:25px;padding:0 7px;font-size:11px;width:100%}
+textarea{padding:5px 7px;font-size:11px;width:100%;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,.12)}
+.sb-lhd{padding:3px 1rem;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--bl)}
+.sb-lhd span{font-size:10px;color:var(--muted)}
+.sb-lhd div{display:flex;gap:6px}
+.sb-lhd button{font-size:10px;color:var(--blue);background:none;border:none;cursor:pointer}
+.cl{flex:1;overflow-y:auto;padding:2px 4px}
+.ci{display:flex;align-items:center;gap:5px;padding:4px 5px;border-radius:5px;cursor:pointer;margin-bottom:1px}
+.ci:hover{background:#f5f3ef}
+.ci.pin-on{background:#FFF8EC}
+.ci.placed{opacity:.35}
+.ck{width:13px;height:13px;border:1.5px solid rgba(0,0,0,.2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ck.on{background:var(--ink);border-color:var(--ink)}
+.ck.on::after{content:'';width:5px;height:5px;background:#fff;clip-path:polygon(14% 44%,0 65%,50% 100%,100% 16%,80% 0%,43% 62%)}
+.ci-i{flex:1;min-width:0}
+.ci-n{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-m{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-r{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.seg{font-size:9px;font-weight:500;padding:1px 4px;border-radius:3px}
+.bod{font-size:9px;background:var(--red-bg);color:var(--red);padding:1px 3px;border-radius:3px;font-weight:500}
+.pb{font-size:11px;cursor:pointer;opacity:.18;background:none;border:none;padding:0;line-height:1}
+.pb.on{opacity:1}
+.gw{padding:.55rem 1rem .7rem;border-top:.5px solid var(--border)}
+.gb{width:100%;padding:7px;background:var(--ink);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer}
+.gb:hover{opacity:.85}
+.gb:disabled{opacity:.3;cursor:not-allowed}
+
+/* ── MAIN ── */
+.main{padding:1rem;overflow-y:auto;min-width:0}
+.mtabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:1rem}
+.mt{font-size:12px;padding:6px 12px;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.mt.active{color:var(--ink);font-weight:500;border-bottom:2px solid var(--ink)}
+.tp{display:none}.tp.active{display:block}
+
+/* KPIs */
+.krow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:1rem}
+.kpi{background:var(--white);border:.5px solid var(--bl);border-radius:8px;padding:8px 10px}
+.kpi-l{font-size:10px;color:var(--muted);margin-bottom:2px}
+.kpi-v{font-size:16px;font-weight:500}
+
+/* Week nav */
+.wnr{display:flex;align-items:center;gap:5px;margin-bottom:.85rem;flex-wrap:wrap}
+.wnc{display:flex;align-items:center;gap:4px}
+.wnc select{width:auto;font-size:11px;height:26px}
+.wnc button{height:26px;padding:0 8px;font-size:11px;border:.5px solid var(--border);border-radius:5px;background:var(--white);cursor:pointer}
+.wnc button:hover{background:var(--bg)}
+.wt-tabs{display:flex;gap:3px;flex-wrap:wrap}
+.wkt{font-size:11px;padding:4px 9px;border:.5px solid var(--border);border-radius:6px;background:var(--white);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:3px}
+.wkt:hover{background:var(--bg)}
+.wkt.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.wkt .badge{font-size:9px;opacity:.75}
+.wk-rst{font-size:9px;padding:1px 4px;border:.5px solid var(--border);border-radius:3px;background:var(--white);color:var(--muted);cursor:pointer}
+.wk-rst:hover{background:#fee2e2;color:#7f1d1d;border-color:#fca5a5}
+.stpl{font-size:9px;padding:1px 5px;border:.5px solid var(--border);border-radius:3px;background:var(--white);cursor:pointer;color:var(--muted)}
+.stpl:hover{background:var(--green-bg);color:var(--green);border-color:#C0DD97}
+
+/* Tour day */
+.tday{background:var(--white);border:.5px solid var(--bl);border-radius:9px;margin-bottom:6px;overflow:hidden}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;cursor:pointer}
+.dh:hover{background:#faf9f7}
+.dn{font-size:13px;font-weight:500}
+.dsegs{display:flex;gap:3px;margin-top:2px;flex-wrap:wrap;align-items:center}
+.dr{display:flex;align-items:center;gap:5px}
+.dm{font-size:10px;color:var(--muted)}
+.ss{font-size:10px;height:22px;padding:0 5px;border:.5px solid var(--border);border-radius:4px;background:var(--white)}
+.chv{font-size:10px;color:var(--hint);transition:transform .2s;display:inline-block}
+.chv.open{transform:rotate(180deg)}
+.db{display:none}.db.open{display:block}
+
+/* Visit */
+.vr{display:grid;grid-template-columns:20px 1fr auto;align-items:start;padding:6px 12px;border-top:.5px solid var(--bl);gap:6px}
+.vr:hover{background:#faf9f7}
+.vr.vpin{background:#FFFBF2}
+.vdot{width:7px;height:7px;border-radius:50%;margin-top:4px;justify-self:center}
+.vn{font-size:12px;font-weight:500}
+.vd{font-size:11px;color:var(--muted)}
+.vaddr{font-size:10px;color:var(--hint)}
+.vkamp{font-size:10px;color:var(--blue);background:var(--blue-bg);padding:1px 5px;border-radius:3px;display:inline-block;margin-top:2px}
+.vlinks{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
+.vl{font-size:10px;text-decoration:none;border:.5px solid rgba(55,138,221,.3);border-radius:3px;padding:1px 5px;cursor:pointer;background:var(--white);color:var(--blue)}
+.vl:hover{background:var(--blue-bg)}
+.vl.call{color:var(--green);border-color:#C0DD97}.vl.call:hover{background:var(--green-bg)}
+.vl.brief{color:var(--amber);background:var(--amber-bg);border-color:#FAC775}.vl.brief:hover{background:#F5D898}
+.vl.note{color:#533800;background:#FFF8EC;border-color:#FAC775}
+.vr-r{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:50px}
+.vtime{font-size:12px;font-weight:500}
+.vdur{font-size:10px;color:var(--muted)}
+.rm{font-size:10px;color:var(--muted);background:none;border:.5px solid var(--border);border-radius:3px;padding:1px 4px;cursor:pointer}
+.rm:hover{background:#fee2e2;color:#7f1d1d;border-color:#fca5a5}
+/* Gesprächsdialog v8 */
+.note-box{margin:0 12px 6px;padding:8px 10px;background:#FFFBF2;border:.5px solid #FAC775;border-radius:6px;display:none}
+.note-box.open{display:block}
+.note-box .note-saved{font-size:10px;color:var(--green);margin-top:4px;display:none}
+.note-preview{font-size:10px;color:var(--amber);background:var(--amber-bg);padding:1px 6px;border-radius:3px;margin-top:2px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nd-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px}
+.nd-field{display:flex;flex-direction:column;gap:2px}
+.nd-field label{font-size:9px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.nd-field select{height:24px;font-size:11px;padding:0 5px;border:.5px solid rgba(0,0,0,.18);border-radius:4px;background:var(--white);color:var(--ink)}
+.nd-field select:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,.12)}
+.nd-notiz{margin-top:4px;display:flex;flex-direction:column;gap:2px}
+.nd-notiz label{font-size:9px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between}
+.nd-notiz textarea{height:44px;font-size:11px;border:.5px solid rgba(0,0,0,.12);border-radius:4px;resize:none;padding:4px 6px}
+.nd-notiz textarea:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,.12)}
+.nd-warn{font-size:9px;color:var(--amber);background:var(--amber-bg);border:.5px solid #FAC775;border-radius:3px;padding:2px 6px;margin-top:3px}
+.nd-charcount{font-size:9px;color:var(--hint)}
+.nd-charcount.over{color:var(--red)}
+.nd-diktat-row{display:flex;gap:4px;align-items:center;margin-bottom:3px}
+.nd-diktat-btn{height:24px;padding:0 8px;font-size:11px;border:.5px solid rgba(0,0,0,.18);border-radius:4px;background:var(--white);cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap}
+.nd-diktat-btn:hover{background:var(--bg)}
+.nd-diktat-btn.recording{background:#FCEBEB;border-color:#F7C1C1;color:var(--red)}
+.nd-diktat-status{font-size:9px;color:var(--muted);flex:1}
+.nd-diktat-status.active{color:var(--red)}
+.nd-webhook-btn{width:100%;margin-top:6px;padding:6px;font-size:11px;font-weight:500;background:var(--ink);color:#fff;border:none;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+.nd-webhook-btn:hover{opacity:.85}
+.nd-webhook-btn:disabled{opacity:.35;cursor:not-allowed}
+.nd-webhook-status{font-size:10px;text-align:center;margin-top:3px;min-height:14px}
+.nd-webhook-status.ok{color:var(--green)}
+.nd-webhook-status.err{color:var(--red)}
+
+.ar{padding:5px 12px;border-top:.5px solid var(--bl);display:flex;gap:4px;flex-wrap:wrap}
+.ar select{flex:1;min-width:160px;height:24px;font-size:11px}
+.ar button{height:24px;padding:0 7px;font-size:11px;border:.5px solid var(--border);border-radius:5px;background:var(--white);cursor:pointer;white-space:nowrap}
+.ar button:hover{background:var(--bg)}
+.empty{text-align:center;padding:2rem 1rem;color:var(--muted);font-size:13px}
+.empty strong{display:block;font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.ubox{margin-top:.6rem;padding:7px 12px;background:var(--white);border:.5px solid var(--bl);border-radius:8px}
+.ubox h4{font-size:10px;font-weight:500;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.utags{display:flex;flex-wrap:wrap;gap:3px}
+.utag{font-size:10px;background:var(--bg);border-radius:4px;padding:2px 5px}
+
+/* ── JAHRESÜBERSICHT ── */
+.year-nav{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.year-nav h3{font-size:15px;font-weight:500}
+.year-nav button{height:28px;padding:0 10px;font-size:12px;border:.5px solid var(--border);border-radius:6px;background:var(--white);cursor:pointer}
+.year-nav button:hover{background:var(--bg)}
+.year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.month-card{background:var(--white);border:.5px solid var(--bl);border-radius:9px;overflow:hidden}
+.month-head{padding:8px 12px;font-size:12px;font-weight:500;border-bottom:.5px solid var(--bl);display:flex;justify-content:space-between;align-items:center}
+.month-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:.5px solid var(--bl)}
+.m-kpi{padding:6px 8px;text-align:center;border-right:.5px solid var(--bl)}
+.m-kpi:last-child{border-right:none}
+.m-kpi-l{font-size:9px;color:var(--muted)}
+.m-kpi-v{font-size:14px;font-weight:500}
+.week-rows{padding:4px 0}
+.wk-row{display:flex;align-items:center;gap:6px;padding:3px 10px;cursor:pointer;border-radius:4px;margin:1px 4px}
+.wk-row:hover{background:var(--bg)}
+.wk-label{font-size:10px;color:var(--muted);width:55px;flex-shrink:0}
+.wk-bar-wrap{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.wk-bar{height:8px;border-radius:4px;transition:width .3s}
+.wk-count{font-size:10px;color:var(--muted);width:28px;text-align:right;flex-shrink:0}
+.wk-row.has-plan .wk-label{color:var(--ink);font-weight:500}
+.seg-strip{display:flex;height:8px;border-radius:4px;overflow:hidden}
+.ss-a{background:var(--dot-a)}
+.ss-b{background:var(--dot-b)}
+.ss-c{background:var(--dot-c)}
+.ss-d{background:var(--dot-d)}
+.month-empty{font-size:11px;color:var(--hint);padding:10px 12px;text-align:center}
+
+/* Templates */
+.tpl-panel{background:var(--white);border:.5px solid var(--bl);border-radius:9px;padding:.9rem;margin-bottom:.85rem}
+.tpl-panel h3{font-size:13px;font-weight:500;margin-bottom:.5rem}
+.tpl-list{display:flex;flex-direction:column;gap:5px}
+.tpl-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:.5px solid var(--border);border-radius:7px;background:var(--bg)}
+.tpl-name{font-size:12px;font-weight:500}
+.tpl-meta{font-size:10px;color:var(--muted)}
+.tpl-btns{display:flex;gap:4px}
+
+/* Editor */
+.btn{padding:5px 10px;border:.5px solid var(--border);border-radius:6px;background:var(--white);color:var(--ink);font-size:11px;cursor:pointer}
+.btn:hover{background:var(--bg)}
+.btn-p{background:var(--ink);color:#fff;border-color:var(--ink)}.btn-p:hover{background:#333}
+.btn-d{border-color:#fca5a5;color:#7f1d1d}.btn-d:hover{background:#fee2e2}
+.etbar{display:flex;gap:5px;margin-bottom:.6rem;flex-wrap:wrap}
+.csv-hint{font-size:10px;color:var(--muted);background:var(--bg);padding:6px 10px;border-radius:6px;margin-bottom:.6rem;line-height:1.7}
+.csv-hint code{font-family:monospace;font-size:10px;background:#e0ddd8;padding:1px 3px;border-radius:3px}
+.twrap{overflow-x:auto;max-height:calc(100vh - 250px);border:.5px solid var(--border);border-radius:8px}
+.etable{width:100%;border-collapse:collapse;font-size:10px}
+.etable th{font-size:9px;font-weight:500;color:var(--muted);text-align:left;padding:5px 6px;border-bottom:1px solid var(--border);background:#faf9f7;position:sticky;top:0;white-space:nowrap}
+.etable td{padding:3px 5px;border-bottom:.5px solid var(--bl);vertical-align:middle}
+.etable tr:hover td{background:#faf9f7}
+.etable input,.etable select{height:20px;font-size:10px;padding:0 4px;border:.5px solid rgba(0,0,0,.12);border-radius:3px;background:var(--white);width:100%}
+.etable .dl{font-size:9px;color:var(--muted);background:none;border:.5px solid var(--border);border-radius:3px;padding:1px 4px;cursor:pointer}
+.etable .dl:hover{background:#fee2e2;color:#7f1d1d}
+.aform{background:var(--white);border:.5px solid var(--border);border-radius:8px;padding:.8rem;margin-bottom:.6rem}
+.aform h3{font-size:12px;font-weight:500;margin-bottom:.55rem}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:5px}
+.ff{display:flex;flex-direction:column;gap:2px}
+.ff label{font-size:9px;color:var(--muted)}
+.fac{display:flex;gap:5px;margin-top:.55rem}
+
+/* Guide */
+.gs{background:var(--white);border:.5px solid var(--bl);border-radius:9px;padding:1rem;margin-bottom:.75rem}
+.gs h3{font-size:13px;font-weight:500;margin-bottom:.6rem}
+.step{display:flex;align-items:flex-start;gap:8px;margin-bottom:.6rem}
+.sn{width:19px;height:19px;border-radius:50%;background:var(--ink);color:#fff;font-size:10px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb3{font-size:12px;color:var(--ink);line-height:1.6}
+.sb3 strong{font-weight:500}
+.sb3 a{color:var(--blue);text-decoration:none}
+.sb3 code{font-family:monospace;font-size:10px;background:var(--bg);padding:1px 4px;border-radius:3px}
+.tip{background:var(--bg);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--muted);margin-top:.4rem;line-height:1.6}
+.tip strong{color:var(--ink)}
+
+/* Save indicator */
+.save-ind{position:fixed;bottom:12px;right:12px;background:var(--green-bg);color:var(--green);border:.5px solid #C0DD97;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:500;opacity:0;transition:opacity .3s;z-index:500;pointer-events:none}
+.save-ind.show{opacity:1}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:var(--white);border-radius:12px;width:100%;max-width:480px;padding:1.25rem;max-height:90vh;overflow-y:auto}
+
+@media print{
+  .sb,.mtabs,.wnr,.ar,.rm,.gw,.etbar,.vlinks,.dr .ss,.dr .wk-rst,.dr .stpl,.note-box,.save-ind{display:none!important}
+  .app{grid-template-columns:1fr}
+  .tp{display:block!important}
+  .db{display:block!important}
+  body{background:#fff;font-size:10px}
+  .tday{border:1px solid #ccc;page-break-inside:avoid;margin-bottom:5px}
+}
+@media(max-width:780px){
+  .app{grid-template-columns:1fr}
+  .sb{height:auto;position:relative;max-height:340px;border-right:none;border-bottom:.5px solid var(--border)}
+  .krow{grid-template-columns:repeat(3,1fr)}
+  .year-grid{grid-template-columns:repeat(2,1fr)}
+}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="save-ind" id="save-ind">Gespeichert ✓</div>
+<div class="app">
+
+<!-- ════ SIDEBAR ════ -->
+<div class="sb">
+  <div class="sb-hd">
+    <h2>Kundenstamm · Dermatologie Bayern</h2>
+    <p>Gesamt: <span id="tot">0</span> · Gefiltert: <span id="flt">0</span> · Ausgewählt: <span id="sel">0</span> · v10</p>
+  </div>
+  <div class="fw">
+    <div class="fl">Segment</div>
+    <div class="sr">
+      <button class="xb sa" onclick="togSeg('a',this)">A</button>
+      <button class="xb sb2" onclick="togSeg('b',this)">B</button>
+      <button class="xb sc" onclick="togSeg('c',this)">C</button>
+      <button class="xb sd" onclick="togSeg('d',this)">D</button>
+    </div>
+    <div class="fl" style="margin-top:3px">Region</div>
+    <div class="rdd" id="rdd">
+      <div class="rtrig" onclick="togRDD()"><span id="rlbl">Alle Regionen</span><span style="font-size:9px;color:var(--hint)">▾</span></div>
+      <div class="rpanel" id="rpanel"></div>
+    </div>
+    <select id="f-kamp" onchange="applyF()">
+      <option value="">Alle Kampagnen</option>
+      <option>Implantat Pro X3</option><option>SilverFoam</option>
+      <option>DermaScan</option><option>Nachsorge-Protokoll</option>
+    </select>
+    <select id="f-bsuch" onchange="applyF()">
+      <option value="">Letzter Besuch: alle</option>
+      <option value="overdue">Überfällig (&gt;6 Wo.)</option>
+      <option value="mid">Vor 4–6 Wochen</option>
+      <option value="recent">Vor 2–4 Wochen</option>
+      <option value="fresh">Kürzlich (&lt;2 Wo.)</option>
+    </select>
+    <select id="f-typ" onchange="applyF()">
+      <option value="">Praxis &amp; Klinik</option>
+      <option value="praxis">Nur Praxis</option>
+      <option value="klinik">Nur Klinik</option>
+    </select>
+    <input type="text" id="f-q" placeholder="Name / Ort / Einrichtung…" oninput="applyF()"/>
+  </div>
+  <div class="sb-lhd">
+    <span>📌 Pflicht · ! überfällig</span>
+    <div><button onclick="selAll()">Alle</button><button onclick="deselAll()" style="color:var(--muted)">Keine</button></div>
+  </div>
+  <div class="cl" id="clist"></div>
+  <div class="gw">
+    <button class="gb" id="gen-btn" onclick="generateTour()" disabled>Tour generieren</button>
+  </div>
+</div>
+
+<!-- ════ MAIN ════ -->
+<div class="main">
+  <div class="mtabs">
+    <button class="mt active" onclick="showTab('tour',this)">Tourenplanung</button>
+    <button class="mt" onclick="showTab('jahr',this)">Jahresübersicht</button>
+    <button class="mt" onclick="showTab('tpl',this)">Vorlagen</button>
+    <button class="mt" onclick="showTab('editor',this)">Kundenstamm</button>
+    <button class="mt" onclick="showTab('guide',this)">Anleitung</button>
+  </div>
+
+  <!-- TAB TOUR -->
+  <div class="tp active" id="tab-tour">
+    <div class="krow">
+      <div class="kpi"><div class="kpi-l">Termine (Woche)</div><div class="kpi-v" id="kp-t">—</div></div>
+      <div class="kpi"><div class="kpi-l">A-Kunden</div><div class="kpi-v" id="kp-a" style="color:var(--blue)">—</div></div>
+      <div class="kpi"><div class="kpi-l">Überfällige</div><div class="kpi-v" id="kp-od" style="color:var(--green)">—</div></div>
+      <div class="kpi"><div class="kpi-l">Fahrtstrecke</div><div class="kpi-v" id="kp-km">—</div></div>
+      <div class="kpi"><div class="kpi-l">Ärzte eingeplant</div><div class="kpi-v" id="kp-pl">—</div></div>
+    </div>
+    <div class="wnr">
+      <div class="wnc">
+        <select id="nav-mo" onchange="buildWkTabs()"></select>
+        <select id="nav-yr" onchange="buildWkTabs()"></select>
+        <button onclick="prevMo()">◂</button>
+        <button onclick="nextMo()">▸</button>
+      </div>
+      <div class="wt-tabs" id="wt-tabs"></div>
+    </div>
+    <div id="tour-out"><div class="empty"><strong>Woche wählen und Tour generieren</strong>Ärzte links auswählen, Woche wählen, dann generieren.</div></div>
+  </div>
+
+  <!-- TAB JAHRESÜBERSICHT -->
+  <div class="tp" id="tab-jahr">
+    <div class="year-nav">
+      <button onclick="prevYr()">◂</button>
+      <h3 id="yr-label">2026</h3>
+      <button onclick="nextYr()">▸</button>
+      <span style="font-size:11px;color:var(--muted);margin-left:8px">Auf Woche klicken → zur Planung springen</span>
+    </div>
+    <div class="year-grid" id="year-grid"></div>
+  </div>
+
+  <!-- TAB VORLAGEN -->
+  <div class="tp" id="tab-tpl">
+    <div class="tpl-panel">
+      <h3>Gespeicherte Wochenvorlagen</h3>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:.65rem">Gespeicherte Wochen auf eine neue Zielwoche anwenden — Ärzte werden übernommen, Zeiten neu berechnet.</p>
+      <div class="tpl-list" id="tpl-list"><div style="font-size:12px;color:var(--muted);padding:.5rem 0">Noch keine Vorlagen. Woche planen → 💾 "Als Vorlage speichern".</div></div>
+    </div>
+  </div>
+
+  <!-- TAB EDITOR -->
+  <div class="tp" id="tab-editor">
+    <div class="etbar">
+      <button class="btn btn-p" onclick="showAF()">+ Arzt hinzufügen</button>
+      <label class="btn" style="cursor:pointer">CSV importieren<input type="file" accept=".csv,.txt" style="display:none" onchange="importCSV(this)"/></label>
+      <button class="btn" onclick="exportCSV()">CSV exportieren</button>
+      <button class="btn" onclick="resetDef()">Demo-Daten</button>
+    </div>
+    <div class="csv-hint"><strong>CSV:</strong> <code>Name;Einrichtung;Straße;PLZ;Ort;Telefon;Region;Kampagne;seg;wo;km;typ</code></div>
+    <div id="af-wrap" style="display:none">
+      <div class="aform">
+        <h3>Neuen Arzt hinzufügen</h3>
+        <div class="fgrid">
+          <div class="ff"><label>Name</label><input id="nf-name" placeholder="Dr. Muster, Anna"/></div>
+          <div class="ff"><label>Einrichtung</label><input id="nf-einr" placeholder="Hautarztpraxis"/></div>
+          <div class="ff"><label>Straße</label><input id="nf-str"/></div>
+          <div class="ff"><label>PLZ</label><input id="nf-plz"/></div>
+          <div class="ff"><label>Ort</label><input id="nf-ort"/></div>
+          <div class="ff"><label>Telefon</label><input id="nf-tel"/></div>
+          <div class="ff"><label>Region</label><select id="nf-reg"><option>München Stadt</option><option>München Umland</option><option>Rosenheim / Chiemgau</option><option>Berchtesgadener Land</option><option>Augsburg</option><option>Allgäu / Kempten</option><option>Ingolstadt / Donau</option><option>Regensburg</option><option>Nürnberg / Mittelfranken</option><option>Würzburg / Unterfranken</option><option>Passau / Inn</option><option>Landshut / Niederbayern</option><option>Andere</option></select></div>
+          <div class="ff"><label>Kampagne</label><select id="nf-kamp"><option>Implantat Pro X3</option><option>SilverFoam</option><option>DermaScan</option><option>Nachsorge-Protokoll</option></select></div>
+          <div class="ff"><label>Segment</label><select id="nf-seg"><option value="a">A</option><option value="b" selected>B</option><option value="c">C</option><option value="d">D</option></select></div>
+          <div class="ff"><label>Typ</label><select id="nf-typ"><option value="praxis" selected>Praxis</option><option value="klinik">Klinik</option></select></div>
+          <div class="ff"><label>Letzter Besuch (Wo.)</label><input id="nf-wo" type="number" min="0" max="52" value="4"/></div>
+          <div class="ff"><label>Entfernung (km)</label><input id="nf-km" type="number" min="1" max="600" value="80"/></div>
+        </div>
+        <div class="fac"><button class="btn btn-p" onclick="addCust()">Hinzufügen</button><button class="btn" onclick="hideAF()">Abbrechen</button></div>
+      </div>
+    </div>
+    <div class="twrap"><table class="etable">
+      <thead><tr><th>#</th><th>Name</th><th>Einrichtung</th><th>Straße</th><th>PLZ</th><th>Ort</th><th>Tel</th><th>Region</th><th>Kampagne</th><th>Seg</th><th>Typ</th><th>Wo</th><th>km</th><th></th></tr></thead>
+      <tbody id="etbody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- TAB ANLEITUNG -->
+  <div class="tp" id="tab-guide">
+    <div class="gs">
+      <h3>Datenpersistenz</h3>
+      <div class="step"><span class="sn">i</span><div class="sb3">Kundenstamm, Tourenpläne, Notizen und Vorlagen werden automatisch im Browser gespeichert (<strong>localStorage</strong>). Beim nächsten Öffnen der Datei sind alle Daten noch vorhanden — solange du dieselbe HTML-Datei im selben Browser öffnest. Für echte Cloud-Synchronisation wäre eine Web-App mit Datenbank nötig.</div></div>
+    </div>
+    <div class="gs">
+      <h3>KBV-Daten einpflegen</h3>
+      <div class="step"><span class="sn">1</span><div class="sb3"><strong>KBV-Arztsuche:</strong> <a href="https://arztsuche.kbv.de" target="_blank">arztsuche.kbv.de</a> → Hautarzt + Bayern</div></div>
+      <div class="step"><span class="sn">2</span><div class="sb3">Ergebnisse kopieren → Excel → Spalten anpassen: <code>Name;Einrichtung;Straße;PLZ;Ort;Telefon;Region;Kampagne;seg;wo;km;typ</code></div></div>
+      <div class="step"><span class="sn">3</span><div class="sb3">Tab "Kundenstamm" → "CSV importieren". Alternativ: manuell über "+ Arzt hinzufügen".</div></div>
+      <div class="tip"><strong>Tipp:</strong> Starte mit 15–20 Ärzten deiner Kernregion als erstem Test.</div>
+    </div>
+    <div class="gs">
+      <h3>Gesprächsnotizen</h3>
+      <div class="step"><span class="sn">i</span><div class="sb3">Bei jedem Termin erscheint ein "Notiz"-Button. Notizen werden automatisch gespeichert und sind im Pre-Call Briefing sichtbar. Sie bleiben auch nach dem Schließen der App erhalten.</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ══ CONSTANTS ══════════════════════════════════════════════════════════════
+const KAMPS=['Implantat Pro X3','SilverFoam','DermaScan','Nachsorge-Protokoll'];
+const START_OPTS=['Traunstein','München','Rosenheim','Augsburg','Kempten','Ingolstadt','Regensburg','Nürnberg','Würzburg','Passau','Landshut','Anderer Ort'];
+const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const DAYNAMES=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+const STORAGE_KEY='tourenplaner_v7';
+
+// ══ DEFAULT DATA ══════════════════════════════════════════════════════════
+const DEF=[
+  {id:1,  name:'Prof. Dr. Mayer, Elisabeth',  typ:'klinik',einrichtung:'LMU Klinikum – Dermatologie',         str:'Marchioninistr. 15',   plz:'81377',ort:'München',           tel:'089-4400-0',  region:'München Stadt',            kamp:'Implantat Pro X3',    seg:'a',wo:9, km:72},
+  {id:2,  name:'Dr. Hoffmann, Klaus',          typ:'praxis',einrichtung:'Hautarztpraxis Schwabing',            str:'Leopoldstr. 22',       plz:'80802',ort:'München',           tel:'089-391045',  region:'München Stadt',            kamp:'Nachsorge-Protokoll', seg:'a',wo:5, km:70},
+  {id:3,  name:'Dr. Braun, Sabine',            typ:'klinik',einrichtung:'TU Klinikum rechts der Isar',         str:'Ismaninger Str. 22',   plz:'81675',ort:'München',           tel:'089-4140-0',  region:'München Stadt',            kamp:'Implantat Pro X3',    seg:'a',wo:11,km:71},
+  {id:4,  name:'Dr. Schneider, Thomas',        typ:'praxis',einrichtung:'Gemeinschaftspraxis Maxvorstadt',     str:'Türkenstr. 45',        plz:'80799',ort:'München',           tel:'089-282050',  region:'München Stadt',            kamp:'DermaScan',           seg:'b',wo:4, km:69},
+  {id:5,  name:'Dr. Weber, Anna',              typ:'praxis',einrichtung:'Hautpraxis Sendling',                 str:'Lindwurmstr. 80',      plz:'80337',ort:'München',           tel:'089-746210',  region:'München Stadt',            kamp:'SilverFoam',          seg:'b',wo:6, km:72},
+  {id:6,  name:'Dr. Fischer, Markus',          typ:'praxis',einrichtung:'Praxis für Dermatologie',             str:'Rosenheimer Str. 12',  plz:'81669',ort:'München',           tel:'089-481095',  region:'München Stadt',            kamp:'DermaScan',           seg:'b',wo:3, km:70},
+  {id:7,  name:'Dr. Wagner, Petra',            typ:'praxis',einrichtung:'Hautarztpraxis Neuhausen',            str:'Nymphenburger Str. 5', plz:'80335',ort:'München',           tel:'089-123456',  region:'München Stadt',            kamp:'SilverFoam',          seg:'c',wo:2, km:71},
+  {id:8,  name:'Dr. Richter, Jan',             typ:'praxis',einrichtung:'Praxis Pasing',                       str:'Landsberger Str. 201', plz:'81241',ort:'München',           tel:'089-885522',  region:'München Stadt',            kamp:'Nachsorge-Protokoll', seg:'c',wo:3, km:75},
+  {id:9,  name:'Dr. Klein, Ursula',            typ:'praxis',einrichtung:'Hautarztpraxis Unterschleißheim',     str:'Raiffeisenstr. 7',     plz:'85716',ort:'Unterschleißheim',  tel:'089-3174880', region:'München Umland',           kamp:'SilverFoam',          seg:'b',wo:5, km:28},
+  {id:10, name:'Dr. Müller, Stefan',           typ:'praxis',einrichtung:'Praxis Dachau',                       str:'Münchner Str. 28',     plz:'85221',ort:'Dachau',            tel:'08131-56000', region:'München Umland',           kamp:'DermaScan',           seg:'b',wo:7, km:42},
+  {id:11, name:'Dr. Lehmann, Claudia',         typ:'praxis',einrichtung:'Hautpraxis Starnberg',                str:'Wittelsbacher Str. 3', plz:'82319',ort:'Starnberg',         tel:'08151-22800', region:'München Umland',           kamp:'Implantat Pro X3',    seg:'b',wo:4, km:36},
+  {id:12, name:'Dr. König, Bernd',             typ:'praxis',einrichtung:'Praxis Erding',                       str:'Haager Str. 14',       plz:'85435',ort:'Erding',            tel:'08122-15060', region:'München Umland',           kamp:'SilverFoam',          seg:'c',wo:2, km:45},
+  {id:13, name:'Dr. Schulz, Renate',           typ:'praxis',einrichtung:'Hautarztpraxis Germering',            str:'Untere Bahnhofstr. 2', plz:'82110',ort:'Germering',         tel:'089-840500',  region:'München Umland',           kamp:'Nachsorge-Protokoll', seg:'c',wo:8, km:25},
+  {id:14, name:'Prof. Dr. Gruber, Michael',    typ:'klinik',einrichtung:'Klinikum Rosenheim – Hautklinik',     str:'Pettenkoferstr. 10',   plz:'83022',ort:'Rosenheim',         tel:'08031-365-0', region:'Rosenheim / Chiemgau',     kamp:'Implantat Pro X3',    seg:'a',wo:8, km:38},
+  {id:15, name:'Dr. Huber, Susanne',           typ:'praxis',einrichtung:'Hautarztpraxis Rosenheim',            str:'Münchner Str. 40',     plz:'83022',ort:'Rosenheim',         tel:'08031-12345', region:'Rosenheim / Chiemgau',     kamp:'SilverFoam',          seg:'b',wo:5, km:38},
+  {id:16, name:'Dr. Bauer, Wolfgang',          typ:'praxis',einrichtung:'Praxis Prien am Chiemsee',            str:'Bernauer Str. 8',      plz:'83209',ort:'Prien am Chiemsee', tel:'08051-2890',  region:'Rosenheim / Chiemgau',     kamp:'DermaScan',           seg:'b',wo:6, km:50},
+  {id:17, name:'Dr. Maier, Christine',         typ:'praxis',einrichtung:'Hautpraxis Wasserburg',               str:'Münchner Str. 6',      plz:'83512',ort:'Wasserburg am Inn', tel:'08071-9120',  region:'Rosenheim / Chiemgau',     kamp:'SilverFoam',          seg:'c',wo:3, km:42},
+  {id:18, name:'Dr. Berger, Franz',            typ:'praxis',einrichtung:'Praxis Kolbermoor',                   str:'Rosenheimer Str. 5',   plz:'83059',ort:'Kolbermoor',        tel:'08031-67800', region:'Rosenheim / Chiemgau',     kamp:'Nachsorge-Protokoll', seg:'c',wo:9, km:35},
+  {id:19, name:'Dr. Winkler, Eva',             typ:'praxis',einrichtung:'Hautarztpraxis Bad Reichenhall',      str:'Ludwigstr. 14',        plz:'83435',ort:'Bad Reichenhall',   tel:'08651-60470', region:'Berchtesgadener Land',     kamp:'DermaScan',           seg:'b',wo:5, km:50},
+  {id:20, name:'Dr. Moser, Hans',              typ:'praxis',einrichtung:'Praxis Berchtesgaden',                str:'Maximilianstr. 3',     plz:'83471',ort:'Berchtesgaden',     tel:'08652-4510',  region:'Berchtesgadener Land',     kamp:'SilverFoam',          seg:'c',wo:12,km:44},
+  {id:21, name:'Dr. Leitner, Maria',           typ:'praxis',einrichtung:'Hautpraxis Freilassing',              str:'Bahnhofstr. 18',       plz:'83395',ort:'Freilassing',       tel:'08654-7840',  region:'Berchtesgadener Land',     kamp:'Implantat Pro X3',    seg:'b',wo:7, km:58},
+  {id:22, name:'Dr. Steiner, Georg',           typ:'praxis',einrichtung:'Praxis Traunstein',                   str:'Stadtplatz 9',         plz:'83278',ort:'Traunstein',        tel:'0861-14500',  region:'Berchtesgadener Land',     kamp:'Nachsorge-Protokoll', seg:'c',wo:2, km:5},
+  {id:23, name:'Prof. Dr. Hartmann, Ingrid',   typ:'klinik',einrichtung:'Universitätsklinikum Augsburg',       str:'Stenglinstr. 2',       plz:'86156',ort:'Augsburg',          tel:'0821-400-0',  region:'Augsburg',                 kamp:'Implantat Pro X3',    seg:'a',wo:10,km:142},
+  {id:24, name:'Dr. Zimmermann, Robert',       typ:'praxis',einrichtung:'Hautarztpraxis Augsburg-Nord',        str:'Ulmer Str. 160',       plz:'86156',ort:'Augsburg',          tel:'0821-712234', region:'Augsburg',                 kamp:'DermaScan',           seg:'b',wo:4, km:144},
+  {id:25, name:'Dr. Krause, Sandra',           typ:'praxis',einrichtung:'Praxis Augsburg-Innenstadt',          str:'Maximilianstr. 20',    plz:'86150',ort:'Augsburg',          tel:'0821-34560',  region:'Augsburg',                 kamp:'SilverFoam',          seg:'b',wo:6, km:141},
+  {id:26, name:'Dr. Schäfer, Dieter',          typ:'praxis',einrichtung:'Hautpraxis Landsberg am Lech',        str:'Katharinenstr. 5',     plz:'86899',ort:'Landsberg am Lech', tel:'08191-32100', region:'Augsburg',                 kamp:'Implantat Pro X3',    seg:'b',wo:5, km:128},
+  {id:27, name:'Dr. Koch, Helga',              typ:'praxis',einrichtung:'Praxis Friedberg',                    str:'Marienplatz 8',        plz:'86316',ort:'Friedberg',         tel:'0821-602590', region:'Augsburg',                 kamp:'Nachsorge-Protokoll', seg:'c',wo:3, km:138},
+  {id:28, name:'Dr. Becker, Ulrich',           typ:'praxis',einrichtung:'Praxis Aichach',                      str:'Münchner Str. 10',     plz:'86551',ort:'Aichach',           tel:'08251-8860',  region:'Augsburg',                 kamp:'SilverFoam',          seg:'d',wo:15,km:120},
+  {id:29, name:'Prof. Dr. Roth, Brigitte',     typ:'klinik',einrichtung:'Klinikum Kempten – Hautklinik',       str:'Robert-Weixler-Str. 50',plz:'87439',ort:'Kempten',         tel:'0831-530-0',  region:'Allgäu / Kempten',         kamp:'Implantat Pro X3',    seg:'a',wo:8, km:130},
+  {id:30, name:'Dr. Müller, Andreas',          typ:'praxis',einrichtung:'Hautarztpraxis Kempten',              str:'Residenzplatz 4',      plz:'87435',ort:'Kempten',           tel:'0831-25610',  region:'Allgäu / Kempten',         kamp:'DermaScan',           seg:'b',wo:5, km:132},
+  {id:31, name:'Dr. Schwarz, Lydia',           typ:'praxis',einrichtung:'Praxis Memmingen',                    str:'Maximilianstr. 33',    plz:'87700',ort:'Memmingen',         tel:'08331-48920', region:'Allgäu / Kempten',         kamp:'SilverFoam',          seg:'b',wo:6, km:148},
+  {id:32, name:'Dr. Graf, Peter',              typ:'praxis',einrichtung:'Hautpraxis Kaufbeuren',               str:'Kaiser-Max-Str. 2',    plz:'87600',ort:'Kaufbeuren',        tel:'08341-97700', region:'Allgäu / Kempten',         kamp:'Nachsorge-Protokoll', seg:'b',wo:7, km:110},
+  {id:33, name:'Dr. Wolff, Katharina',         typ:'praxis',einrichtung:'Praxis Füssen',                       str:'Sebastianstr. 10',     plz:'87629',ort:'Füssen',            tel:'08362-8990',  region:'Allgäu / Kempten',         kamp:'DermaScan',           seg:'c',wo:4, km:155},
+  {id:34, name:'Dr. Sauer, Herbert',           typ:'praxis',einrichtung:'Praxis Marktoberdorf',                str:'Marktplatz 7',         plz:'87616',ort:'Marktoberdorf',     tel:'08342-96100', region:'Allgäu / Kempten',         kamp:'Implantat Pro X3',    seg:'d',wo:14,km:118},
+  {id:35, name:'Prof. Dr. Jung, Walter',       typ:'klinik',einrichtung:'Klinikum Ingolstadt – Dermatologie',  str:'Krumenauerstr. 25',    plz:'85049',ort:'Ingolstadt',        tel:'0841-880-0',  region:'Ingolstadt / Donau',       kamp:'Implantat Pro X3',    seg:'a',wo:10,km:95},
+  {id:36, name:'Dr. Werner, Inge',             typ:'praxis',einrichtung:'Hautarztpraxis Ingolstadt',           str:'Schlosslände 26',      plz:'85049',ort:'Ingolstadt',        tel:'0841-35450',  region:'Ingolstadt / Donau',       kamp:'SilverFoam',          seg:'b',wo:4, km:93},
+  {id:37, name:'Dr. Baumann, Ralf',            typ:'praxis',einrichtung:'Praxis Pfaffenhofen',                 str:'Hauptplatz 10',        plz:'85276',ort:'Pfaffenhofen a.d.Ilm',tel:'08441-7890',region:'Ingolstadt / Donau',       kamp:'DermaScan',           seg:'c',wo:7, km:85},
+  {id:38, name:'Dr. Vogt, Annette',            typ:'praxis',einrichtung:'Praxis Neuburg',                      str:'Karlsplatz 4',         plz:'86633',ort:'Neuburg a.d.Donau', tel:'08431-46100', region:'Ingolstadt / Donau',       kamp:'Nachsorge-Protokoll', seg:'b',wo:6, km:102},
+  {id:39, name:'Dr. Ziegler, Klaus',           typ:'praxis',einrichtung:'Praxis Eichstätt',                    str:'Marktplatz 5',         plz:'85072',ort:'Eichstätt',         tel:'08421-90800', region:'Ingolstadt / Donau',       kamp:'SilverFoam',          seg:'c',wo:9, km:88},
+  {id:40, name:'Prof. Dr. Simon, Barbara',     typ:'klinik',einrichtung:'Universitätsklinikum Regensburg',     str:'Franz-Josef-Strauß-Allee 11',plz:'93053',ort:'Regensburg',tel:'0941-944-0',  region:'Regensburg',               kamp:'Implantat Pro X3',    seg:'a',wo:11,km:145},
+  {id:41, name:'Dr. Lange, Hubert',            typ:'praxis',einrichtung:'Hautarztpraxis Regensburg-Mitte',     str:'Gesandtenstr. 8',      plz:'93047',ort:'Regensburg',        tel:'0941-56120',  region:'Regensburg',               kamp:'DermaScan',           seg:'b',wo:5, km:143},
+  {id:42, name:'Dr. Krüger, Sabine',           typ:'praxis',einrichtung:'Praxis Straubing',                    str:'Theresienplatz 30',    plz:'94315',ort:'Straubing',         tel:'09421-23100', region:'Regensburg',               kamp:'SilverFoam',          seg:'b',wo:6, km:135},
+  {id:43, name:'Dr. Brandt, Norbert',          typ:'praxis',einrichtung:'Praxis Cham',                         str:'Propsteistr. 5',       plz:'93413',ort:'Cham',              tel:'09971-8580',  region:'Regensburg',               kamp:'Nachsorge-Protokoll', seg:'c',wo:8, km:162},
+  {id:44, name:'Dr. Franke, Monika',           typ:'praxis',einrichtung:'Praxis Amberg',                       str:'Georgenstr. 12',       plz:'92224',ort:'Amberg',            tel:'09621-38400', region:'Regensburg',               kamp:'DermaScan',           seg:'c',wo:4, km:138},
+  {id:45, name:'Prof. Dr. Adler, Christoph',   typ:'klinik',einrichtung:'Uniklinikum Erlangen – Hautklinik',   str:'Ulmenweg 18',          plz:'91054',ort:'Erlangen',          tel:'09131-85-0',  region:'Nürnberg / Mittelfranken', kamp:'Implantat Pro X3',    seg:'a',wo:12,km:185},
+  {id:46, name:'Dr. Horn, Gisela',             typ:'praxis',einrichtung:'Hautarztpraxis Nürnberg-Mitte',       str:'Königstr. 48',         plz:'90402',ort:'Nürnberg',          tel:'0911-24456',  region:'Nürnberg / Mittelfranken', kamp:'DermaScan',           seg:'b',wo:5, km:178},
+  {id:47, name:'Dr. Drescher, Tobias',         typ:'praxis',einrichtung:'Praxis Fürth',                        str:'Schwabacher Str. 7',   plz:'90762',ort:'Fürth',             tel:'0911-781230', region:'Nürnberg / Mittelfranken', kamp:'SilverFoam',          seg:'b',wo:7, km:180},
+  {id:48, name:'Dr. Engel, Renate',            typ:'praxis',einrichtung:'Praxis Schwabach',                    str:'Königsplatz 3',        plz:'91126',ort:'Schwabach',         tel:'09122-18900', region:'Nürnberg / Mittelfranken', kamp:'Nachsorge-Protokoll', seg:'c',wo:3, km:175},
+  {id:49, name:'Dr. Stein, Hermann',           typ:'praxis',einrichtung:'Praxis Ansbach',                      str:'Martin-Luther-Platz 4',plz:'91522',ort:'Ansbach',           tel:'0981-48200',  region:'Nürnberg / Mittelfranken', kamp:'DermaScan',           seg:'c',wo:9, km:200},
+  {id:50, name:'Prof. Dr. Schulte, Claudia',   typ:'klinik',einrichtung:'Uniklinikum Würzburg – Dermatologie', str:'Josef-Schneider-Str. 2',plz:'97080',ort:'Würzburg',        tel:'0931-201-0',  region:'Würzburg / Unterfranken',  kamp:'Implantat Pro X3',    seg:'a',wo:13,km:220},
+  {id:51, name:'Dr. Böhm, Reinhard',           typ:'praxis',einrichtung:'Hautarztpraxis Würzburg',             str:'Domstr. 9',            plz:'97070',ort:'Würzburg',          tel:'0931-54120',  region:'Würzburg / Unterfranken',  kamp:'SilverFoam',          seg:'b',wo:6, km:218},
+  {id:52, name:'Dr. Seidel, Marion',           typ:'praxis',einrichtung:'Praxis Schweinfurt',                  str:'Rüfferstr. 4',         plz:'97421',ort:'Schweinfurt',       tel:'09721-28800', region:'Würzburg / Unterfranken',  kamp:'DermaScan',           seg:'b',wo:8, km:235},
+  {id:53, name:'Dr. Beck, Lothar',             typ:'praxis',einrichtung:'Praxis Aschaffenburg',                str:'Löhergraben 20',       plz:'63739',ort:'Aschaffenburg',     tel:'06021-44500', region:'Würzburg / Unterfranken',  kamp:'Nachsorge-Protokoll', seg:'c',wo:5, km:295},
+  {id:54, name:'Dr. Richter, Anja',            typ:'praxis',einrichtung:'Hautarztpraxis Deggendorf',           str:'Oberer Stadtplatz 5',  plz:'94469',ort:'Deggendorf',        tel:'0991-37200',  region:'Passau / Inn',             kamp:'DermaScan',           seg:'b',wo:7, km:120},
+  {id:55, name:'Dr. Kaufmann, Ernst',          typ:'praxis',einrichtung:'Praxis Passau',                       str:'Bahnhofstr. 12',       plz:'94032',ort:'Passau',            tel:'0851-72300',  region:'Passau / Inn',             kamp:'SilverFoam',          seg:'b',wo:8, km:135},
+  {id:56, name:'Dr. Werner, Lisa',             typ:'praxis',einrichtung:'Praxis Pfarrkirchen',                 str:'Stadtplatz 3',         plz:'84347',ort:'Pfarrkirchen',      tel:'08561-9120',  region:'Passau / Inn',             kamp:'Implantat Pro X3',    seg:'d',wo:13,km:115},
+  {id:57, name:'Dr. Nowak, Dieter',            typ:'praxis',einrichtung:'Praxis Landau a.d.Isar',              str:'Marktplatz 8',         plz:'94405',ort:'Landau a.d.Isar',   tel:'09951-6040',  region:'Passau / Inn',             kamp:'Nachsorge-Protokoll', seg:'c',wo:4, km:108},
+  {id:58, name:'Prof. Dr. Kröger, Ilse',       typ:'klinik',einrichtung:'Klinikum Landshut – Hautklinik',      str:'Robert-Koch-Str. 1',   plz:'84034',ort:'Landshut',         tel:'0871-698-0',  region:'Landshut / Niederbayern',  kamp:'Implantat Pro X3',    seg:'a',wo:9, km:82},
+  {id:59, name:'Dr. Zimmermann, Karl',         typ:'praxis',einrichtung:'Hautarztpraxis Landshut',             str:'Altstadt 3',           plz:'84028',ort:'Landshut',         tel:'0871-23450',  region:'Landshut / Niederbayern',  kamp:'DermaScan',           seg:'b',wo:5, km:80},
+  {id:60, name:'Dr. Herrmann, Ute',            typ:'praxis',einrichtung:'Praxis Dingolfing',                   str:'Obere Stadt 12',       plz:'84130',ort:'Dingolfing',        tel:'08731-7610',  region:'Landshut / Niederbayern',  kamp:'SilverFoam',          seg:'c',wo:6, km:95},
+];
+
+// ══ STATE ══════════════════════════════════════════════════════════════════
+let custs=[], nid=61;
+let sSegs={a:true,b:true,c:true,d:true};
+let selR=new Set();
+let selected=new Set(), pinned=new Set();
+let tours={};          // key "YYYY-MM-W#" → [{l,d,dateObj,visits,totalMin,totalKm,startOrt}]
+let notes={};          // key "custId_wkKey_dayIdx" → string
+let templates=[];
+let activeWkKey=null;
+let filt=[];
+let navMo=new Date().getMonth();
+let navYr=new Date().getFullYear();
+let viewYr=new Date().getFullYear();
+let currentWeeks=[];
+
+// ══ PERSISTENCE ═════════════════════════════════════════════════════════════
+function saveState(){
+  try{
+    const state={custs,nid,tours,notes,templates,pinned:[...pinned],selected:[...selected]};
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    showSaveInd();
+  }catch(e){console.warn('Speichern fehlgeschlagen:',e);}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    const s=JSON.parse(raw);
+    if(s.custs&&s.custs.length>0){
+      custs=s.custs;nid=s.nid||61;
+      tours=s.tours||{};notes=s.notes||{};templates=s.templates||[];
+      pinned=new Set(s.pinned||[]);selected=new Set(s.selected||[]);
+      return true;
+    }
+  }catch(e){console.warn('Laden fehlgeschlagen:',e);}
+  return false;
+}
+let saveTimer=null;
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveState,800);}
+function showSaveInd(){
+  const el=document.getElementById('save-ind');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+// ══ DATE UTILS ══════════════════════════════════════════════════════════════
+function fmtD(d){return`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.`;}
+function getKW(d){const t=new Date(d);t.setHours(0,0,0,0);t.setDate(t.getDate()+3-(t.getDay()+6)%7);const w=new Date(t.getFullYear(),0,4);return 1+Math.round(((t-w)/86400000-3+(w.getDay()+6)%7)/7);}
+function getMoWeeks(year,month){
+  const weeks=[];
+  const first=new Date(year,month,1);
+  let mon=new Date(first);
+  mon.setDate(first.getDate()-((first.getDay()+6)%7));
+  let wn=1;
+  while(true){
+    const fri=new Date(mon);fri.setDate(mon.getDate()+4);
+    const overlaps=(mon.getFullYear()<year||(mon.getFullYear()===year&&mon.getMonth()<=month))&&
+                   (fri.getFullYear()>year||(fri.getFullYear()===year&&fri.getMonth()>=month));
+    if(overlaps){
+      const days=DAYNAMES.map((l,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return{l,d:fmtD(d),dateObj:new Date(d)};});
+      weeks.push({label:`Woche ${wn}`,kw:`KW ${getKW(mon)}`,dates:`${fmtD(mon)}–${fmtD(fri)}`,days,key:`${year}-${String(month+1).padStart(2,'0')}-W${wn}`,year,month});
+      wn++;
+    }
+    mon.setDate(mon.getDate()+7);
+    if(mon.getFullYear()>year||(mon.getFullYear()===year&&mon.getMonth()>month))break;
+    if(wn>6)break;
+  }
+  return weeks;
+}
+
+// ══ NAVIGATION ══════════════════════════════════════════════════════════════
+function initNavSel(){
+  const ms=document.getElementById('nav-mo');
+  ms.innerHTML=MONTHS.map((m,i)=>`<option value="${i}"${i===navMo?' selected':''}>${m}</option>`).join('');
+  const ys=document.getElementById('nav-yr');
+  const now=new Date().getFullYear();
+  for(let y=now-1;y<=now+3;y++)ys.innerHTML+=`<option value="${y}"${y===navYr?' selected':''}>${y}</option>`;
+}
+function buildWkTabs(){
+  navMo=parseInt(document.getElementById('nav-mo').value);
+  navYr=parseInt(document.getElementById('nav-yr').value);
+  currentWeeks=getMoWeeks(navYr,navMo);
+  document.getElementById('wt-tabs').innerHTML=currentWeeks.map(w=>{
+    const wt=tours[w.key];
+    const cnt=wt?wt.reduce((s,d)=>s+d.visits.length,0):0;
+    const isA=w.key===activeWkKey;
+    return `<div style="display:flex;align-items:center;gap:2px">
+      <button class="wkt${isA?' active':''}" onclick="switchWk('${w.key}')">
+        ${w.label} <span class="badge">${w.kw} · ${w.dates}</span>${cnt>0?` · ${cnt}`:''}
+      </button>
+      ${cnt>0?`<button class="wk-rst" onclick="resetWk('${w.key}')" title="Zurücksetzen">✕</button><button class="stpl" onclick="saveTpl('${w.key}')" title="Als Vorlage speichern">💾</button>`:''}
+    </div>`;
+  }).join('');
+  updBtn();
+}
+function prevMo(){navMo--;if(navMo<0){navMo=11;navYr--;}document.getElementById('nav-mo').value=navMo;document.getElementById('nav-yr').value=navYr;buildWkTabs();}
+function nextMo(){navMo++;if(navMo>11){navMo=0;navYr++;}document.getElementById('nav-mo').value=navMo;document.getElementById('nav-yr').value=navYr;buildWkTabs();}
+function switchWk(key){activeWkKey=key;buildWkTabs();updBtn();renderTour();}
+function resetWk(key){
+  if(!confirm('Woche wirklich zurücksetzen?'))return;
+  delete tours[key];
+  if(activeWkKey===key){document.getElementById('tour-out').innerHTML=`<div class="empty"><strong>Woche zurückgesetzt</strong>Ärzte auswählen und neu generieren.</div>`;}
+  buildWkTabs();updKPIs();renderList();renderJahr();scheduleSave();
+}
+
+// ══ REGION MULTI ════════════════════════════════════════════════════════════
+function allRegs(){return[...new Set(custs.map(c=>c.region))].sort();}
+function buildRP(){
+  const all=allRegs();
+  document.getElementById('rpanel').innerHTML=
+    `<div class="rc"><input type="checkbox" id="rca" ${selR.size===0?'checked':''} onchange="togAllR(this)"/><label for="rca" style="cursor:pointer">Alle Regionen</label></div>`+
+    all.map((r,i)=>`<div class="rc"><input type="checkbox" id="rcr${i}" ${selR.has(r)?'checked':''} onchange="togR(${i},this)"/><label for="rcr${i}" style="cursor:pointer">${r}</label></div>`).join('');
+  updRL();
+  window._regList=all;
+}
+function togR(i,cb){const r=window._regList[i];cb.checked?selR.add(r):selR.delete(r);document.getElementById('rca').checked=selR.size===0;updRL();applyF();}
+function togAllR(cb){if(cb.checked)selR.clear();updRL();applyF();buildRP();}
+function updRL(){const el=document.getElementById('rlbl');if(selR.size===0)el.textContent='Alle Regionen';else if(selR.size===1)el.textContent=[...selR][0];else el.textContent=`${selR.size} Regionen`;}
+function togRDD(){document.getElementById('rpanel').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!document.getElementById('rdd').contains(e.target))document.getElementById('rpanel').classList.remove('open');});
+
+// ══ FILTER ══════════════════════════════════════════════════════════════════
+function applyF(){
+  const bv=document.getElementById('f-bsuch').value;
+  const tv=document.getElementById('f-typ').value;
+  const kv=document.getElementById('f-kamp').value;
+  const q=document.getElementById('f-q').value.toLowerCase();
+  filt=custs.filter(c=>{
+    if(!sSegs[c.seg])return false;
+    if(selR.size>0&&!selR.has(c.region))return false;
+    if(kv&&c.kamp!==kv)return false;
+    if(tv==='praxis'&&c.typ!=='praxis')return false;
+    if(tv==='klinik'&&c.typ!=='klinik')return false;
+    if(bv==='overdue'&&c.wo<6)return false;
+    if(bv==='mid'&&(c.wo<4||c.wo>=6))return false;
+    if(bv==='recent'&&(c.wo<2||c.wo>=4))return false;
+    if(bv==='fresh'&&c.wo>=2)return false;
+    if(q&&![c.name,c.ort,c.einrichtung,c.str||''].some(s=>s.toLowerCase().includes(q)))return false;
+    return true;
+  });
+  document.getElementById('flt').textContent=filt.length;
+  renderList();
+}
+function togSeg(s,b){sSegs[s]=!sSegs[s];b.classList.toggle('off',!sSegs[s]);applyF();}
+function selAll(){filt.forEach(c=>selected.add(c.id));renderList();updBtn();}
+function deselAll(){selected.clear();renderList();updBtn();}
+
+// ══ PLACED ══════════════════════════════════════════════════════════════════
+function placed(){
+  const s=new Set();
+  Object.entries(tours).forEach(([k,wt])=>{if(k!==activeWkKey)wt.forEach(d=>d.visits.forEach(v=>s.add(v.id)));});
+  return s;
+}
+
+// ══ RENDER LIST ══════════════════════════════════════════════════════════════
+const segBg=s=>s==='a'?'#E6F1FB':s==='b'?'#EAF3DE':s==='c'?'#FAEEDA':'#FCEBEB';
+const segC=s=>s==='a'?'#185FA5':s==='b'?'#27500A':s==='c'?'#633806':'#791F1F';
+const segDot=s=>s==='a'?'#378ADD':s==='b'?'#639922':s==='c'?'#BA7517':'#E24B4A';
+const score=c=>{let s=c.seg==='a'?50:c.seg==='b'?30:c.seg==='c'?12:5;s+=Math.min(c.wo*3,36);if(pinned.has(c.id))s+=120;return s;};
+
+function renderList(){
+  const pl=placed();
+  const sorted=[...filt].sort((a,b)=>score(b)-score(a));
+  document.getElementById('tot').textContent=custs.length;
+  document.getElementById('sel').textContent=selected.size;
+  document.getElementById('clist').innerHTML=sorted.map(c=>{
+    const iS=selected.has(c.id),iP=pinned.has(c.id),iL=pl.has(c.id);
+    return `<div class="ci${iP?' pin-on':''}${iL?' placed':''}" onclick="togSel(${c.id},event)">
+      <div class="ck${iS?' on':''}"></div>
+      <div class="ci-i">
+        <div class="ci-n">${c.name}</div>
+        <div class="ci-m">${c.ort} · ${c.kamp||''} · ${c.wo}w</div>
+      </div>
+      <div class="ci-r">
+        ${c.wo>=6?'<span class="bod">!</span>':''}
+        <span class="seg" style="background:${segBg(c.seg)};color:${segC(c.seg)}">${c.seg.toUpperCase()}</span>
+        <button class="pb${iP?' on':''}" onclick="togPin(${c.id},event)">📌</button>
+      </div>
+    </div>`;
+  }).join('');
+  updBtn();
+}
+function togSel(id,e){e.stopPropagation();selected.has(id)?selected.delete(id):selected.add(id);renderList();}
+function togPin(id,e){e.stopPropagation();pinned.has(id)?pinned.delete(id):pinned.add(id);if(pinned.has(id))selected.add(id);renderList();}
+function updBtn(){
+  const b=document.getElementById('gen-btn'),n=selected.size;
+  b.disabled=n===0||!activeWkKey;
+  b.textContent=!activeWkKey?'Zuerst Woche wählen':n>0?`Woche generieren (${n} Ärzte)`:'Tour generieren';
+}
+
+// ══ GENERATE ═════════════════════════════════════════════════════════════════
+function generateTour(){
+  if(!activeWkKey)return;
+  const wkDef=currentWeeks.find(w=>w.key===activeWkKey);if(!wkDef)return;
+  const otherPl=placed();
+  const pool=custs.filter(c=>selected.has(c.id)&&!otherPl.has(c.id)).sort((a,b)=>score(b)-score(a));
+  const days=wkDef.days.map(d=>({...d,visits:[],totalMin:0,totalKm:0,startOrt:'Traunstein'}));
+  const SLOT=330,MAX_V=5;
+  const bestDay=c=>{let b=-1,bs=-Infinity;days.forEach((d,i)=>{if(d.totalMin+c._d>SLOT+60||d.visits.length>=MAX_V)return;let s=0;if(d.visits.some(v=>v.region===c.region))s+=20;if(!d.visits.length)s+=5;s-=d.totalMin*.03;if(s>bs){bs=s;b=i;}});return b;};
+  [...pool.filter(c=>pinned.has(c.id)),...pool.filter(c=>!pinned.has(c.id))].forEach(c=>{
+    c._d=c.typ==='klinik'?75:c.seg==='a'?60:c.seg==='b'?45:30;
+    const idx=bestDay(c);if(idx>=0){days[idx].visits.push({...c});days[idx].totalMin+=c._d;}
+  });
+  assignTimes(days);
+  tours[activeWkKey]=days;
+  buildWkTabs();renderTour();updKPIs();renderList();renderJahr();scheduleSave();
+}
+function assignTimes(days){
+  days.forEach(d=>{
+    let t=8*60+30;
+    d.visits.forEach((v,i)=>{
+      v._s=t; t+=v._d;
+      if(i<d.visits.length-1){
+        const nxt=d.visits[i+1];
+        const kmDiff=Math.abs((nxt.km||50)-(v.km||50));
+        t+=Math.max(15,Math.min(45,Math.round(kmDiff*.4+18)));
+        if(t>=13*60&&t<14*60)t=14*60;
+      }
+    });
+    d.totalKm=Math.round(d.visits.reduce((s,v)=>s+v.km,0)*.22+38);
+  });
+}
+
+// ══ MAPS ══════════════════════════════════════════════════════════════════════
+const mapsQ=c=>encodeURIComponent(`${c.str||''} ${c.plz||''} ${c.ort}`);
+const mapsUrl=c=>`https://www.google.com/maps/search/?api=1&query=${mapsQ(c)}`;
+const mapsNav=(from,c)=>`https://www.google.com/maps/dir/${encodeURIComponent(from)}/${mapsQ(c)}`;
+const m2t=m=>`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
+
+// ══ NOTE KEY ══════════════════════════════════════════════════════════════════
+function noteKey(custId,wkKey,di){return`${custId}_${wkKey}_${di}`;}
+function getNote(custId,wkKey,di){return notes[noteKey(custId,wkKey,di)]||{};}
+function getNoteText(custId,wkKey,di){
+  const n=getNote(custId,wkKey,di);
+  if(typeof n==='string')return n; // Abwärtskompatibilität v7
+  return[n.typ||'',n.produkt||'',n.indikation||'',n.ergebnis||'',n.folge||'',n.notiz||''].filter(Boolean).join(' · ');
+}
+function setNote(custId,wkKey,di,val){
+  const k=noteKey(custId,wkKey,di);
+  const empty=!val||(!val.typ&&!val.produkt&&!val.indikation&&!val.ergebnis&&!val.folge&&!val.notiz);
+  if(!empty)notes[k]=val;else delete notes[k];
+  scheduleSave();
+}
+
+// ══ RENDER TOUR ═══════════════════════════════════════════════════════════════
+function renderTour(){
+  const wt=tours[activeWkKey];
+  if(!wt){
+    const wk=currentWeeks.find(w=>w.key===activeWkKey);
+    document.getElementById('tour-out').innerHTML=`<div class="empty"><strong>${wk?wk.label+' noch nicht geplant':'Woche wählen'}</strong>Ärzte auswählen und "Tour generieren" klicken.</div>`;
+    return;
+  }
+  const plSet=new Set(wt.flatMap(d=>d.visits.map(v=>v.id)));
+  const unpl=custs.filter(c=>selected.has(c.id)&&!plSet.has(c.id)&&
+    !Object.entries(tours).some(([k,t2])=>k!==activeWkKey&&t2.some(d=>d.visits.some(v=>v.id===c.id))));
+
+  let html=wt.map((d,di)=>{
+    const badges=[...new Set(d.visits.map(v=>v.seg))].map(s=>`<span class="seg" style="background:${segBg(s)};color:${segC(s)}">${s.toUpperCase()}</span>`).join('');
+    return `<div class="tday">
+      <div class="dh" onclick="togDay('${activeWkKey}',${di})">
+        <div>
+          <div class="dn">${d.l}, ${d.d}${d.dateObj?d.dateObj.getFullYear():''}</div>
+          <div class="dsegs">${badges||'<span style="font-size:10px;color:var(--hint)">kein Termin</span>'}<span style="font-size:10px;color:var(--muted);margin-left:4px">· Start: ${d.startOrt}</span></div>
+        </div>
+        <div class="dr" onclick="event.stopPropagation()">
+          <span class="dm">${d.visits.length} Termine · ~${d.totalKm} km</span>
+          <select class="ss" onchange="setStart('${activeWkKey}',${di},this.value)">
+            ${START_OPTS.map(o=>`<option${o===d.startOrt?' selected':''}>${o}</option>`).join('')}
+          </select>
+          <span class="chv open" id="chv-${activeWkKey}-${di}">▾</span>
+        </div>
+      </div>
+      <div class="db open" id="db-${activeWkKey}-${di}">
+        ${!d.visits.length?'<div style="padding:7px 12px;font-size:11px;color:var(--hint)">Keine Termine.</div>':''}
+        ${d.visits.map((v,vi)=>{
+          const addr=v.str?`${v.str}, ${v.plz||''} ${v.ort}`:'';
+          const fromOrt=vi===0?d.startOrt:d.visits[vi-1].ort;
+          const nk=noteKey(v.id,activeWkKey,di);
+          const existingNote=notes[nk]||{};
+          const notePreview=getNoteText(v.id,activeWkKey,di);
+          return `<div class="vr${pinned.has(v.id)?' vpin':''}">
+            <div class="vdot" style="background:${segDot(v.seg)}"></div>
+            <div>
+              <div class="vn">${v.name}${pinned.has(v.id)?' 📌':''}</div>
+              <div class="vd">${v.einrichtung} · ${v.ort}</div>
+              ${addr?`<div class="vaddr">${addr}</div>`:''}
+              ${v.kamp?`<span class="vkamp">${v.kamp}</span>`:''}
+              ${notePreview?`<div class="note-preview" title="${notePreview}">📝 ${notePreview}</div>`:''}
+              <div class="vlinks">
+                ${v.tel?`<a class="vl call" href="tel:${v.tel}">📞 ${v.tel}</a>`:''}
+                ${addr?`<a class="vl" href="${mapsUrl(v)}" target="_blank">Maps</a>`:''}
+                ${addr?`<a class="vl" href="${mapsNav(fromOrt,v)}" target="_blank">Navigation ab ${vi===0?d.startOrt:'Vorh.'}</a>`:''}
+                <span class="vl brief" onclick="showBrief(${v.id},'${activeWkKey}',${di})">Briefing</span>
+                <span class="vl note" onclick="togNote('${nk}')">📝 Notiz</span>
+              </div>
+            </div>
+            <div class="vr-r">
+              <span class="vtime">${m2t(v._s)}</span>
+              <span class="vdur">${v._d} min</span>
+              <button class="rm" onclick="removeV('${activeWkKey}',${di},${v.id})">✕</button>
+            </div>
+          </div>
+          <div class="note-box" id="nb-${nk}">
+            <div class="nd-grid">
+              <div class="nd-field">
+                <label>Gesprächstyp</label>
+                <select id="nd-typ-${nk}" onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">
+                  <option value="">– wählen –</option>
+                  <option${(existingNote.typ==='Erstgespräch'?' selected':'')}>Erstgespräch</option>
+                  <option${(existingNote.typ==='Produktvorstellung'?' selected':'')}>Produktvorstellung</option>
+                  <option${(existingNote.typ==='Nachfassen'?' selected':'')}>Nachfassen</option>
+                  <option${(existingNote.typ==='Musterabgabe'?' selected':'')}>Musterabgabe</option>
+                  <option${(existingNote.typ==='Schulung'?' selected':'')}>Schulung</option>
+                  <option${(existingNote.typ==='Beschwerde'?' selected':'')}>Beschwerde</option>
+                  <option${(existingNote.typ==='Routinebesuch'?' selected':'')}>Routinebesuch</option>
+                </select>
+              </div>
+              <div class="nd-field">
+                <label>Produktfokus</label>
+                <select id="nd-produkt-${nk}" onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">
+                  <option value="">– wählen –</option>
+                  <option${(existingNote.produkt==='Implantat Pro X3'?' selected':'')}>Implantat Pro X3</option>
+                  <option${(existingNote.produkt==='SilverFoam'?' selected':'')}>SilverFoam</option>
+                  <option${(existingNote.produkt==='DermaScan'?' selected':'')}>DermaScan</option>
+                  <option${(existingNote.produkt==='Nachsorge-Protokoll'?' selected':'')}>Nachsorge-Protokoll</option>
+                  <option${(existingNote.produkt==='Mehrere Produkte'?' selected':'')}>Mehrere Produkte</option>
+                  <option${(existingNote.produkt==='Kein Produkt'?' selected':'')}>Kein Produkt</option>
+                </select>
+              </div>
+              <div class="nd-field">
+                <label>Indikationsbereich</label>
+                <select id="nd-indikation-${nk}" onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">
+                  <option value="">– wählen –</option>
+                  <option${(existingNote.indikation==='Wundversorgung'?' selected':'')}>Wundversorgung</option>
+                  <option${(existingNote.indikation==='Dermatitis / Ekzem'?' selected':'')}>Dermatitis / Ekzem</option>
+                  <option${(existingNote.indikation==='Psoriasis'?' selected':'')}>Psoriasis</option>
+                  <option${(existingNote.indikation==='Melanom / Onkologie'?' selected':'')}>Melanom / Onkologie</option>
+                  <option${(existingNote.indikation==='Ästhetik / Kosmetik'?' selected':'')}>Ästhetik / Kosmetik</option>
+                  <option${(existingNote.indikation==='Allgemeine Dermatologie'?' selected':'')}>Allgemeine Dermatologie</option>
+                  <option${(existingNote.indikation==='Nicht besprochen'?' selected':'')}>Nicht besprochen</option>
+                </select>
+              </div>
+              <div class="nd-field">
+                <label>Gesprächsergebnis</label>
+                <select id="nd-ergebnis-${nk}" onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">
+                  <option value="">– wählen –</option>
+                  <option${(existingNote.ergebnis==='Sehr positiv'?' selected':'')}>Sehr positiv</option>
+                  <option${(existingNote.ergebnis==='Positiv'?' selected':'')}>Positiv</option>
+                  <option${(existingNote.ergebnis==='Neutral'?' selected':'')}>Neutral</option>
+                  <option${(existingNote.ergebnis==='Skeptisch'?' selected':'')}>Skeptisch</option>
+                  <option${(existingNote.ergebnis==='Kein Interesse'?' selected':'')}>Kein Interesse</option>
+                  <option${(existingNote.ergebnis==='Termin nicht zustande'?' selected':'')}>Termin nicht zustande</option>
+                </select>
+              </div>
+              <div class="nd-field">
+                <label>Folgemaßnahme</label>
+                <select id="nd-folge-${nk}" onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">
+                  <option value="">– wählen –</option>
+                  <option${(existingNote.folge==='Muster hinterlassen'?' selected':'')}>Muster hinterlassen</option>
+                  <option${(existingNote.folge==='Angebot zugesandt'?' selected':'')}>Angebot zugesandt</option>
+                  <option${(existingNote.folge==='Termin vereinbart'?' selected':'')}>Termin vereinbart</option>
+                  <option${(existingNote.folge==='Nachfassen in 2 Wochen'?' selected':'')}>Nachfassen in 2 Wochen</option>
+                  <option${(existingNote.folge==='Nachfassen in 4 Wochen'?' selected':'')}>Nachfassen in 4 Wochen</option>
+                  <option${(existingNote.folge==='Schulung geplant'?' selected':'')}>Schulung geplant</option>
+                  <option${(existingNote.folge==='Keine Folgemaßnahme'?' selected':'')}>Keine Folgemaßnahme</option>
+                </select>
+              </div>
+              <div class="nd-field">
+                <label>Material übergeben</label>
+                <select id="nd-material-${nk}" onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">
+                  <option value="">– wählen –</option>
+                  <option${(existingNote.material==='Produktmuster'?' selected':'')}>Produktmuster</option>
+                  <option${(existingNote.material==='Broschüre'?' selected':'')}>Broschüre</option>
+                  <option${(existingNote.material==='Studienunterlagen'?' selected':'')}>Studienunterlagen</option>
+                  <option${(existingNote.material==='Mehrere Materialien'?' selected':'')}>Mehrere Materialien</option>
+                  <option${(existingNote.material==='Kein Material'?' selected':'')}>Kein Material</option>
+                </select>
+              </div>
+            </div>
+            <div class="nd-notiz">
+              <label>
+                <span>Interne Notiz (optional — kein Patientenbezug)</span>
+                <span class="nd-charcount" id="nd-cc-${nk}">${(existingNote.notiz||'').length}/80</span>
+              </label>
+              <div class="nd-diktat-row">
+                <button class="nd-diktat-btn" id="nd-dikt-${nk}" onclick="toggleDiktat('${nk}')">🎙 Diktieren</button>
+                <span class="nd-diktat-status" id="nd-dikt-status-${nk}">Mikrofon antippen zum Sprechen</span>
+              </div>
+              <textarea id="nd-notiz-${nk}" maxlength="80" placeholder="z.B. Produktgröße besprochen, Rückruf erbeten…" oninput="updCharCount('${nk}')" onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">${existingNote.notiz||''}</textarea>
+              <div class="nd-warn">Kein Patientenbezug — keine Diagnosen, Therapien oder Patientendaten eintragen.</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+              <div class="note-saved" id="ns-${nk}">Gespeichert ✓</div>
+              <button onclick="togNote('${nk}')" style="font-size:10px;border:none;background:none;cursor:pointer;color:var(--muted)">Schließen</button>
+            </div>
+            <button class="nd-webhook-btn" id="nd-wh-btn-${nk}" onclick="sendWebhook('${nk}',${v.id},'${activeWkKey}',${di})">
+              ↗ An n8n senden / Salesforce-Sync
+            </button>
+            <div class="nd-webhook-status" id="nd-wh-status-${nk}"></div>
+          </div>`;
+        }).join('')}
+        <div class="ar">
+          <select id="as-${activeWkKey}-${di}">
+            <option value="">+ Arzt hinzufügen …</option>
+            ${custs.filter(c=>!wt[di].visits.find(v=>v.id===c.id)).sort((a,b)=>score(b)-score(a)).map(c=>`<option value="${c.id}">[${c.seg.toUpperCase()}] ${c.name} · ${c.ort}</option>`).join('')}
+          </select>
+          <button onclick="addV('${activeWkKey}',${di})">+ Hinzufügen</button>
+          <button onclick="window.print()">Drucken / PDF</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  if(unpl.length)html+=`<div class="ubox"><h4>Nicht eingeplant (Kapazität)</h4><div class="utags">${unpl.map(c=>`<span class="utag">[${c.seg.toUpperCase()}] ${c.name}</span>`).join('')}</div></div>`;
+  document.getElementById('tour-out').innerHTML=html;
+}
+
+function togNote(nk){
+  const box=document.getElementById(`nb-${nk}`);
+  if(box)box.classList.toggle('open');
+}
+function updCharCount(nk){
+  const ta=document.getElementById(`nd-notiz-${nk}`);
+  const cc=document.getElementById(`nd-cc-${nk}`);
+  if(ta&&cc){const l=ta.value.length;cc.textContent=`${l}/80`;cc.classList.toggle('over',l>=75);}
+}
+function saveNoteField(nk,custId,wkKey,di){
+  const g=id=>{ const el=document.getElementById(id); return el?el.value:''; };
+  const val={
+    typ:     g(`nd-typ-${nk}`),
+    produkt: g(`nd-produkt-${nk}`),
+    indikation: g(`nd-indikation-${nk}`),
+    ergebnis:g(`nd-ergebnis-${nk}`),
+    folge:   g(`nd-folge-${nk}`),
+    material:g(`nd-material-${nk}`),
+    notiz:   g(`nd-notiz-${nk}`),
+  };
+  setNote(custId,wkKey,di,val);
+  const ns=document.getElementById(`ns-${nk}`);
+  if(ns){ns.style.display='block';setTimeout(()=>ns.style.display='none',1200);}
+  renderTour();
+}
+// Abwärtskompatibilität: alte saveNote-Aufrufe abfangen
+function saveNote(nk,custId,wkKey,di,val){
+  setNote(custId,wkKey,di,{notiz:val.substring(0,80)});
+  const ns=document.getElementById(`ns-${nk}`);
+  if(ns){ns.style.display='block';setTimeout(()=>ns.style.display='none',1200);}
+  renderTour();
+}
+
+// ══ DIKTIERFUNKTION MIT KEYWORD-ERKENNUNG ════════════════════════════════════
+const _diktRecognizers={};
+
+// Keyword-Mapping: gesprochenes Wort → Feld + Wert
+const DIKT_KEYWORDS=[
+  // Gesprächstyp
+  {f:'typ', w:['erstgespräch','erstkontakt','zum ersten mal'],       v:'Erstgespräch'},
+  {f:'typ', w:['produktvorstellung','vorgestellt','präsentiert'],     v:'Produktvorstellung'},
+  {f:'typ', w:['nachfassen','nachfass','follow.?up','wiedervorstellung'],v:'Nachfassen'},
+  {f:'typ', w:['musterabgabe','muster abgegeben','probe'],            v:'Musterabgabe'},
+  {f:'typ', w:['schulung','geschult','fortbildung'],                  v:'Schulung'},
+  {f:'typ', w:['beschwerde','reklamation','problem gemeldet'],        v:'Beschwerde'},
+  {f:'typ', w:['routinebesuch','routine','standardbesuch'],           v:'Routinebesuch'},
+  // Produktfokus
+  {f:'produkt', w:['silver.?foam','silverfoam'],                     v:'SilverFoam'},
+  {f:'produkt', w:['implantat pro','implantat x3','pro x3'],         v:'Implantat Pro X3'},
+  {f:'produkt', w:['dermascan','dema scan'],                         v:'DermaScan'},
+  {f:'produkt', w:['nachsorge.?protokoll','nachsorgeprotokoll'],      v:'Nachsorge-Protokoll'},
+  {f:'produkt', w:['mehrere produkte','verschiedene produkte'],       v:'Mehrere Produkte'},
+  {f:'produkt', w:['kein produkt','ohne produkt'],                   v:'Kein Produkt'},
+  // Indikation
+  {f:'indikation', w:['wundversorgung','wunde','wunden','ulkus'],    v:'Wundversorgung'},
+  {f:'indikation', w:['dermatitis','ekzem','neurodermitis'],         v:'Dermatitis / Ekzem'},
+  {f:'indikation', w:['psoriasis','schuppenflechte'],                v:'Psoriasis'},
+  {f:'indikation', w:['melanom','onkologie','tumor','karzinom'],     v:'Melanom / Onkologie'},
+  {f:'indikation', w:['ästhetik','kosmetik','falten','botox'],       v:'Ästhetik / Kosmetik'},
+  // Ergebnis
+  {f:'ergebnis', w:['sehr positiv','begeistert','sehr interessiert','hervorragend'],v:'Sehr positiv'},
+  {f:'ergebnis', w:['positiv','gut verlaufen','interessiert','aufgeschlossen'],     v:'Positiv'},
+  {f:'ergebnis', w:['neutral','abwartend','unentschlossen'],         v:'Neutral'},
+  {f:'ergebnis', w:['skeptisch','zurückhaltend','zögerlich'],        v:'Skeptisch'},
+  {f:'ergebnis', w:['kein interesse','nicht interessiert','abgelehnt'],v:'Kein Interesse'},
+  {f:'ergebnis', w:['nicht zustande','nicht angetroffen','nicht da'],v:'Termin nicht zustande'},
+  // Folgemaßnahme
+  {f:'folge', w:['muster hinterlassen','muster dagelassen','probe hinterlassen'],v:'Muster hinterlassen'},
+  {f:'folge', w:['angebot','angebot zugesandt','angebot geschickt'], v:'Angebot zugesandt'},
+  {f:'folge', w:['termin vereinbart','nächster termin','folgetermin'],v:'Termin vereinbart'},
+  {f:'folge', w:['zwei wochen','in zwei wochen','14 tage'],          v:'Nachfassen in 2 Wochen'},
+  {f:'folge', w:['vier wochen','in vier wochen','einen monat'],      v:'Nachfassen in 4 Wochen'},
+  {f:'folge', w:['schulung geplant','schulung vereinbart'],          v:'Schulung geplant'},
+  {f:'folge', w:['keine maßnahme','keine folgemaßnahme','nichts weiteres'],v:'Keine Folgemaßnahme'},
+  // Material
+  {f:'material', w:['produktmuster','muster mitgegeben','muster übergeben'],v:'Produktmuster'},
+  {f:'material', w:['broschüre','flyer','infomaterial','folder'],    v:'Broschüre'},
+  {f:'material', w:['studie','studienunterlagen','publikation'],     v:'Studienunterlagen'},
+  {f:'material', w:['mehrere materialien','verschiedene unterlagen'],v:'Mehrere Materialien'},
+  {f:'material', w:['kein material','nichts übergeben'],             v:'Kein Material'},
+];
+
+function applyKeywords(nk, text){
+  const t=text.toLowerCase();
+  const treffer=[];
+  DIKT_KEYWORDS.forEach(({f,w,v})=>{
+    const match=w.some(kw=>new RegExp(kw,'i').test(t));
+    if(match){
+      const sel=document.getElementById(`nd-${f}-${nk}`);
+      if(sel&&sel.value!==v){
+        sel.value=v;
+        // Visuelles Feedback: kurz grün aufleuchten
+        sel.style.background='#EAF3DE';
+        setTimeout(()=>{sel.style.background='';},1200);
+        treffer.push(v);
+      }
+    }
+  });
+  return treffer;
+}
+
+function toggleDiktat(nk){
+  if(_diktRecognizers[nk]&&_diktRecognizers[nk]._running){
+    stopDiktat(nk);return;
+  }
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    setDiktStatus(nk,'Nicht unterstützt — bitte Chrome oder Edge verwenden.',false);return;
+  }
+  const r=new SpeechRecognition();
+  r.lang='de-DE';r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+  const ta=document.getElementById(`nd-notiz-${nk}`);
+  let basis=ta?ta.value:'';
+  let gesamtText='';
+  r.onstart=()=>{
+    _diktRecognizers[nk]._running=true;
+    setDiktStatus(nk,'Aufnahme läuft — sprechen Sie jetzt…',true);
+    const btn=document.getElementById(`nd-dikt-${nk}`);
+    if(btn){btn.textContent='⏹ Stopp';btn.classList.add('recording');}
+  };
+  r.onresult=e=>{
+    let interim='';let finalText='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)finalText+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    if(finalText){
+      gesamtText+=' '+finalText;
+      basis=(basis+' '+finalText).trim().substring(0,80);
+      // Keyword-Erkennung auf finalisierten Text anwenden
+      const treffer=applyKeywords(nk,gesamtText);
+      if(treffer.length){
+        setDiktStatus(nk,`Erkannt: ${treffer.slice(-2).join(', ')}`,true);
+      }
+    }
+    if(ta){ta.value=interim?(basis+' '+interim).substring(0,80):basis;updCharCount(nk);}
+  };
+  r.onerror=ev=>{
+    stopDiktat(nk);
+    if(ev.error==='not-allowed')setDiktStatus(nk,'Mikrofon-Zugriff verweigert — bitte in Browser-Einstellungen erlauben.',false);
+    else setDiktStatus(nk,`Fehler: ${ev.error}`,false);
+  };
+  r.onend=()=>{
+    if(_diktRecognizers[nk]&&_diktRecognizers[nk]._running){
+      try{r.start();}catch(_){}
+    }
+  };
+  _diktRecognizers[nk]=r;
+  try{r.start();}catch(err){setDiktStatus(nk,'Mikrofon konnte nicht gestartet werden.',false);}
+}
+function stopDiktat(nk){
+  const r=_diktRecognizers[nk];
+  if(r){r._running=false;try{r.stop();}catch(_){}}
+  const btn=document.getElementById(`nd-dikt-${nk}`);
+  if(btn){btn.textContent='🎙 Diktieren';btn.classList.remove('recording');}
+  setDiktStatus(nk,'Diktat beendet — Felder bitte prüfen.',false);
+  const ta=document.getElementById(`nd-notiz-${nk}`);
+  if(ta)ta.dispatchEvent(new Event('change'));
+}
+function setDiktStatus(nk,msg,active){
+  const el=document.getElementById(`nd-dikt-status-${nk}`);
+  if(el){el.textContent=msg;el.classList.toggle('active',active);}
+}
+
+// ══ WEBHOOK / N8N-SYNC ═══════════════════════════════════════════════════════
+// n8n Webhook-URL hier eintragen (nach Einrichtung ersetzen):
+const N8N_WEBHOOK_URL='https://DEINE-N8N-URL/webhook/tourenplaner';
+
+function sendWebhook(nk,custId,wkKey,di){
+  const btn=document.getElementById(`nd-wh-btn-${nk}`);
+  const status=document.getElementById(`nd-wh-status-${nk}`);
+  const cust=custs.find(c=>c.id===custId);
+  if(!cust)return;
+  const note=notes[nk]||{};
+  if(typeof note==='string'){
+    setWhStatus(nk,'Bitte zuerst das Notizformular ausfüllen.',false);return;
+  }
+  const payload={
+    timestamp:new Date().toISOString(),
+    arzt:{name:cust.name,einrichtung:cust.einrichtung,ort:cust.ort,plz:cust.plz||'',
+          str:cust.str||'',tel:cust.tel||'',segment:cust.seg.toUpperCase(),
+          region:cust.region,kampagne:cust.kamp||'',typ:cust.typ},
+    besuch:{woche:wkKey,tag:di,gespraechstyp:note.typ||'',produktfokus:note.produkt||'',
+            indikation:note.indikation||'',ergebnis:note.ergebnis||'',
+            folgemassnahme:note.folge||'',material:note.material||'',
+            notiz:note.notiz||''},
+    quelle:'Tourenplaner Dermatologie Bayern v10'
+  };
+  if(btn){btn.disabled=true;btn.textContent='Sende…';}
+  setWhStatus(nk,'',null);
+  fetch(N8N_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(r=>{
+      if(r.ok){setWhStatus(nk,'✓ Erfolgreich an n8n gesendet — Salesforce-Sync läuft.',true);}
+      else{setWhStatus(nk,`Fehler: Server antwortete mit ${r.status}.`,false);}
+    })
+    .catch(()=>setWhStatus(nk,'Verbindung fehlgeschlagen — n8n-URL prüfen oder nicht verbunden.',false))
+    .finally(()=>{if(btn){btn.disabled=false;btn.textContent='↗ An n8n senden / Salesforce-Sync';}});
+}
+function setWhStatus(nk,msg,ok){
+  const el=document.getElementById(`nd-wh-status-${nk}`);
+  if(!el)return;
+  el.textContent=msg;
+  el.classList.toggle('ok',ok===true);
+  el.classList.toggle('err',ok===false);
+}
+
+function setStart(key,di,val){if(tours[key])tours[key][di].startOrt=val;renderTour();}
+function togDay(key,di){const b=document.getElementById(`db-${key}-${di}`),c=document.getElementById(`chv-${key}-${di}`);if(!b)return;const o=b.classList.toggle('open');c.classList.toggle('open',o);}
+function removeV(key,di,id){
+  if(!tours[key])return;
+  tours[key][di].visits=tours[key][di].visits.filter(v=>v.id!==id);
+  assignTimes(tours[key]);buildWkTabs();renderTour();updKPIs();renderList();renderJahr();scheduleSave();
+}
+function addV(key,di){
+  const sel=document.getElementById(`as-${key}-${di}`),id=+sel.value;if(!id)return;
+  const c=custs.find(x=>x.id===id);if(!c||!tours[key])return;
+  if(tours[key][di].visits.find(v=>v.id===id))return;
+  const cv={...c,_d:c.typ==='klinik'?75:c.seg==='a'?60:c.seg==='b'?45:30};
+  tours[key][di].visits.push(cv);
+  assignTimes(tours[key]);buildWkTabs();renderTour();updKPIs();renderList();renderJahr();scheduleSave();
+}
+
+// ══ KPIs ══════════════════════════════════════════════════════════════════════
+function updKPIs(){
+  const wt=activeWkKey?tours[activeWkKey]:null;
+  const all=wt?wt.flatMap(d=>d.visits):[];
+  const km=wt?wt.reduce((s,d)=>s+d.totalKm,0):0;
+  const odA=custs.filter(c=>selected.has(c.id)&&c.wo>=6).length;
+  const odH=all.filter(v=>v.wo>=6).length;
+  const totalPl=new Set(Object.values(tours).flatMap(w=>w.flatMap(d=>d.visits.map(v=>v.id))));
+  document.getElementById('kp-t').textContent=all.length||'—';
+  document.getElementById('kp-a').textContent=all.filter(v=>v.seg==='a').length||'—';
+  document.getElementById('kp-od').textContent=odA>0?`${odH}/${odA}`:'—';
+  document.getElementById('kp-km').textContent=km>0?`~${km} km`:'—';
+  document.getElementById('kp-pl').textContent=totalPl.size>0?`${totalPl.size}/${custs.length}`:'—';
+}
+
+// ══ JAHRESÜBERSICHT ═══════════════════════════════════════════════════════════
+let viewYr2=new Date().getFullYear();
+function prevYr(){viewYr2--;document.getElementById('yr-label').textContent=viewYr2;renderJahr();}
+function nextYr(){viewYr2++;document.getElementById('yr-label').textContent=viewYr2;renderJahr();}
+
+function renderJahr(){
+  const MAX_PER_WK=25; // max Termine für 100% Bar
+  const grid=document.getElementById('year-grid');
+  if(!grid)return;
+  grid.innerHTML=Array.from({length:12},(_,mo)=>{
+    const weeks=getMoWeeks(viewYr2,mo);
+    const moTours=weeks.map(w=>({w,wt:tours[w.key]}));
+    const moTotal=moTours.reduce((s,{wt})=>s+(wt?wt.reduce((ss,d)=>ss+d.visits.length,0):0),0);
+    const moKm=moTours.reduce((s,{wt})=>s+(wt?wt.reduce((ss,d)=>ss+d.totalKm,0):0),0);
+    const moA=moTours.reduce((s,{wt})=>s+(wt?wt.flatMap(d=>d.visits).filter(v=>v.seg==='a').length:0),0);
+    const hasAny=moTotal>0;
+    return `<div class="month-card">
+      <div class="month-head">
+        <span>${MONTHS[mo]} ${viewYr2}</span>
+        ${hasAny?`<span style="font-size:10px;color:var(--muted)">${moTotal} Termine · ~${moKm} km</span>`:'<span style="font-size:10px;color:var(--hint)">nicht geplant</span>'}
+      </div>
+      ${hasAny?`<div class="month-kpis">
+        <div class="m-kpi"><div class="m-kpi-l">Termine</div><div class="m-kpi-v">${moTotal}</div></div>
+        <div class="m-kpi"><div class="m-kpi-l">A-Kunden</div><div class="m-kpi-v" style="color:var(--blue)">${moA}</div></div>
+        <div class="m-kpi"><div class="m-kpi-l">km</div><div class="m-kpi-v">~${moKm}</div></div>
+      </div>`:''}
+      <div class="week-rows">
+        ${weeks.map(w=>{
+          const wt=tours[w.key];
+          const cnt=wt?wt.reduce((s,d)=>s+d.visits.length,0):0;
+          const hp=cnt>0;
+          // Segment breakdown
+          const segCnts={a:0,b:0,c:0,d:0};
+          if(wt)wt.flatMap(d=>d.visits).forEach(v=>segCnts[v.seg]=(segCnts[v.seg]||0)+1);
+          const tot=Object.values(segCnts).reduce((s,x)=>s+x,0)||1;
+          const strip=hp?`<div class="seg-strip" style="flex:1;height:8px;border-radius:4px;overflow:hidden">
+            ${segCnts.a?`<div class="ss-a" style="width:${Math.round(segCnts.a/tot*100)}%"></div>`:''}
+            ${segCnts.b?`<div class="ss-b" style="width:${Math.round(segCnts.b/tot*100)}%"></div>`:''}
+            ${segCnts.c?`<div class="ss-c" style="width:${Math.round(segCnts.c/tot*100)}%"></div>`:''}
+            ${segCnts.d?`<div class="ss-d" style="width:${Math.round(segCnts.d/tot*100)}%"></div>`:''}
+          </div>`:
+          `<div class="wk-bar-wrap" style="flex:1"><div class="wk-bar" style="width:0%;background:var(--bl)"></div></div>`;
+          return `<div class="wk-row${hp?' has-plan':''}" onclick="jumpToWk('${w.key}',${w.year},${w.month})">
+            <span class="wk-label">${w.kw}</span>
+            ${strip}
+            <span class="wk-count">${hp?cnt:'○'}</span>
+          </div>`;
+        }).join('')}
+        ${!hasAny?`<div class="month-empty">Keine Planung</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function jumpToWk(key,year,month){
+  // Switch to tour tab, set month/year, activate week
+  navYr=year;navMo=month;
+  document.getElementById('nav-yr').value=year;
+  document.getElementById('nav-mo').value=month;
+  buildWkTabs();
+  activeWkKey=key;
+  buildWkTabs();renderTour();updKPIs();
+  showTab('tour',document.querySelector('.mt'));
+}
+
+// ══ TEMPLATES ══════════════════════════════════════════════════════════════════
+function saveTpl(key){
+  const wt=tours[key];if(!wt)return;
+  const wk=currentWeeks.find(w=>w.key===key);
+  const name=prompt('Vorlagenname:',wk?`${wk.label} ${MONTHS[wk.month]} ${wk.year}`:'Vorlage');
+  if(!name)return;
+  templates.push({name,key,savedAt:new Date().toLocaleDateString('de-DE'),days:wt.map(d=>({l:d.l,ids:d.visits.map(v=>v.id)}))});
+  renderTplTab();scheduleSave();
+  alert(`Vorlage "${name}" gespeichert.`);
+}
+function renderTplTab(){
+  const el=document.getElementById('tpl-list');
+  if(!templates.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:.5rem 0">Noch keine Vorlagen. Woche planen → 💾 Speichern.</div>';return;}
+  el.innerHTML=templates.map((t,ti)=>`
+    <div class="tpl-item">
+      <div><div class="tpl-name">${t.name}</div><div class="tpl-meta">Gespeichert: ${t.savedAt} · ${t.days.reduce((s,d)=>s+d.ids.length,0)} Termine</div></div>
+      <div class="tpl-btns">
+        <button class="btn" onclick="applyTpl(${ti})">Auf aktuelle Woche anwenden</button>
+        <button class="btn btn-d" onclick="delTpl(${ti})">✕</button>
+      </div>
+    </div>`).join('');
+}
+function applyTpl(ti){
+  if(!activeWkKey){alert('Zuerst eine Zielwoche wählen.');return;}
+  const wk=currentWeeks.find(w=>w.key===activeWkKey);if(!wk)return;
+  const tpl=templates[ti];
+  const days=wk.days.map((day,di)=>{
+    const td=tpl.days[di]||{ids:[]};
+    const visits=td.ids.map(id=>custs.find(c=>c.id===id)).filter(Boolean).map(c=>({...c,_d:c.typ==='klinik'?75:c.seg==='a'?60:c.seg==='b'?45:30}));
+    return{...day,visits,totalMin:visits.reduce((s,v)=>s+v._d,0),totalKm:0,startOrt:'Traunstein'};
+  });
+  assignTimes(days);tours[activeWkKey]=days;
+  showTab('tour',document.querySelector('.mt'));
+  buildWkTabs();renderTour();updKPIs();renderList();renderJahr();scheduleSave();
+}
+function delTpl(ti){if(!confirm('Vorlage löschen?'))return;templates.splice(ti,1);renderTplTab();scheduleSave();}
+
+// ══ TAB ══════════════════════════════════════════════════════════════════════
+function showTab(id,btn){
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.mt').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='editor')renderETable();
+  if(id==='tpl')renderTplTab();
+  if(id==='jahr'){document.getElementById('yr-label').textContent=viewYr2;renderJahr();}
+}
+
+// ══ EDITOR ═══════════════════════════════════════════════════════════════════
+function renderETable(){
+  const regs=allRegs();
+  document.getElementById('etbody').innerHTML=custs.map(c=>`
+    <tr>
+      <td style="color:var(--hint);font-size:9px">${c.id}</td>
+      <td><input value="${c.name}" onchange="uF(${c.id},'name',this.value)" style="min-width:120px"/></td>
+      <td><input value="${c.einrichtung}" onchange="uF(${c.id},'einrichtung',this.value)" style="min-width:110px"/></td>
+      <td><input value="${c.str||''}" onchange="uF(${c.id},'str',this.value)" style="min-width:95px"/></td>
+      <td><input value="${c.plz||''}" onchange="uF(${c.id},'plz',this.value)" style="width:44px"/></td>
+      <td><input value="${c.ort}" onchange="uF(${c.id},'ort',this.value)" style="min-width:80px"/></td>
+      <td><input value="${c.tel||''}" onchange="uF(${c.id},'tel',this.value)" style="min-width:85px"/></td>
+      <td><select onchange="uF(${c.id},'region',this.value)">${regs.map(r=>`<option${r===c.region?' selected':''}>${r}</option>`).join('')}<option${!regs.includes(c.region)?' selected':''}>Andere</option></select></td>
+      <td><select onchange="uF(${c.id},'kamp',this.value)">${KAMPS.map(k=>`<option${k===c.kamp?' selected':''}>${k}</option>`).join('')}</select></td>
+      <td><select onchange="uF(${c.id},'seg',this.value)">${['a','b','c','d'].map(s=>`<option value="${s}"${s===c.seg?' selected':''}>${s.toUpperCase()}</option>`).join('')}</select></td>
+      <td><select onchange="uF(${c.id},'typ',this.value)"><option value="praxis"${c.typ==='praxis'?' selected':''}>Praxis</option><option value="klinik"${c.typ==='klinik'?' selected':''}>Klinik</option></select></td>
+      <td><input type="number" value="${c.wo}" min="0" max="52" style="width:38px" onchange="uF(${c.id},'wo',+this.value)"/></td>
+      <td><input type="number" value="${c.km}" min="1" max="600" style="width:44px" onchange="uF(${c.id},'km',+this.value)"/></td>
+      <td><button class="dl" onclick="delC(${c.id})">✕</button></td>
+    </tr>`).join('');
+}
+function uF(id,f,v){const c=custs.find(x=>x.id===id);if(c){c[f]=v;applyF();buildRP();scheduleSave();}}
+function delC(id){
+  if(!confirm('Eintrag löschen?'))return;
+  custs=custs.filter(c=>c.id!==id);selected.delete(id);pinned.delete(id);
+  Object.values(tours).forEach(wt=>{if(wt)wt.forEach(d=>{d.visits=d.visits.filter(v=>v.id!==id);});});
+  applyF();buildRP();renderETable();updKPIs();buildWkTabs();renderJahr();scheduleSave();
+}
+function showAF(){document.getElementById('af-wrap').style.display='block';}
+function hideAF(){document.getElementById('af-wrap').style.display='none';}
+function addCust(){
+  const name=document.getElementById('nf-name').value.trim();if(!name){alert('Name erforderlich.');return;}
+  custs.push({id:nid++,name,einrichtung:document.getElementById('nf-einr').value.trim()||'—',
+    str:document.getElementById('nf-str').value.trim(),plz:document.getElementById('nf-plz').value.trim(),
+    ort:document.getElementById('nf-ort').value.trim()||'—',tel:document.getElementById('nf-tel').value.trim(),
+    region:document.getElementById('nf-reg').value,kamp:document.getElementById('nf-kamp').value,
+    seg:document.getElementById('nf-seg').value,typ:document.getElementById('nf-typ').value,
+    wo:+document.getElementById('nf-wo').value||4,km:+document.getElementById('nf-km').value||80});
+  hideAF();['nf-name','nf-einr','nf-str','nf-plz','nf-ort','nf-tel'].forEach(i=>document.getElementById(i).value='');
+  applyF();buildRP();renderETable();scheduleSave();
+}
+function importCSV(inp){
+  const f=inp.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    let ok=0,err=0;
+    e.target.result.split('\n').filter(l=>l.trim()).forEach(line=>{
+      const sep=line.includes(';')?';':',';
+      const p=line.split(sep).map(x=>x.trim().replace(/^"|"$/g,''));
+      const [name,einrichtung,str,plz,ort,tel,region,kamp,seg,wo,km,typ]=p;
+      if(!name||!['a','b','c','d'].includes((seg||'').toLowerCase())){err++;return;}
+      custs.push({id:nid++,name,einrichtung:einrichtung||'—',str:str||'',plz:plz||'',ort:ort||'—',
+        tel:tel||'',region:region||'Andere',kamp:KAMPS.includes(kamp)?kamp:KAMPS[0],
+        seg:seg.toLowerCase(),typ:(typ||'').toLowerCase()==='klinik'?'klinik':'praxis',
+        wo:parseInt(wo)||4,km:parseInt(km)||80});ok++;
+    });
+    alert(`Import: ${ok} importiert, ${err} übersprungen.`);inp.value='';
+    applyF();buildRP();renderETable();scheduleSave();
+  };
+  rd.readAsText(f,'UTF-8');
+}
+function exportCSV(){
+  const rows=custs.map(c=>[c.name,c.einrichtung,c.str||'',c.plz||'',c.ort,c.tel||'',c.region,c.kamp||'',c.seg,c.wo,c.km,c.typ].join(';')).join('\n');
+  const b=new Blob(['\uFEFF'+'Name;Einrichtung;Straße;PLZ;Ort;Telefon;Region;Kampagne;seg;wo;km;typ\n'+rows],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='kundenstamm_dermatologie.csv';a.click();
+}
+function resetDef(){
+  if(!confirm('Alles zurücksetzen? Alle Daten, Pläne und Notizen werden gelöscht.'))return;
+  custs=DEF.map(c=>({...c}));nid=61;selected.clear();pinned.clear();selR.clear();
+  tours={};notes={};activeWkKey=null;filt=[...custs];templates=[];
+  localStorage.removeItem(STORAGE_KEY);
+  buildRP();applyF();buildWkTabs();
+  document.getElementById('tour-out').innerHTML='<div class="empty"><strong>Woche wählen</strong>Ärzte auswählen und generieren.</div>';
+  updKPIs();renderETable();renderTplTab();renderJahr();
+}
+
+// ══ BRIEFING MODAL ═══════════════════════════════════════════════════════════
+function showBrief(id,wkKey,di){
+  const c=custs.find(x=>x.id===id);if(!c)return;
+  const segL={a:'A – Schlüsselkunde',b:'B – Wachstumskunde',c:'C – Standardkunde',d:'D – Reaktivierung'};
+  const ziele={a:['Jahresplanung & Umsatzziel besprechen','Cross-Selling-Potenzial identifizieren','KOL-/Studienkooperation ansprechen'],b:['Produktnutzung ausweiten','Konkurrenzprodukte verdrängen','Nächsten Termin sichern'],c:['Re-Order sicherstellen','Zufriedenheit prüfen','Weiterempfehlung ansprechen'],d:['Grund für Inaktivität klären','Reaktivierungsangebot platzieren','Folgebesuch vereinbaren']};
+  const fragen={a:['Welche neuen Eingriffe planen Sie in Q3?','Wie bewerten Sie unsere Servicequalität?','Welche Mitbewerber sind aktuell präsent?'],b:['Was hindert Sie an intensiverer Nutzung?','Welche Ergebnisse hatten Sie bisher?','Wer entscheidet über neue Beschaffungen?'],c:['Sind Sie mit dem Bestellprozess zufrieden?','Gibt es Qualitätsprobleme?','Würden Sie uns weiterempfehlen?'],d:['Was hat Sie bewogen, woanders zu bestellen?','Welche Bedingung würde eine Rückkehr ermöglichen?','Darf ich in 6 Wochen erneut anfragen?']};
+  const addr=c.str?`${c.str}, ${c.plz||''} ${c.ort}`:'';
+  const existingNote=getNoteText(id,wkKey,di);
+  const div=document.createElement('div');div.id='bm';
+  div.innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeBm()">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+        <div>
+          <div style="font-size:15px;font-weight:500">${c.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${c.einrichtung} · ${c.ort}</div>
+          ${addr?`<div style="font-size:10px;color:var(--hint)">${addr}</div>`:''}
+          ${c.kamp?`<span class="vkamp">${c.kamp}</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span class="seg" style="background:${segBg(c.seg)};color:${segC(c.seg)};font-size:11px;padding:2px 7px">${segL[c.seg]}</span>
+          <button onclick="closeBm()" style="background:none;border:none;font-size:15px;cursor:pointer;color:var(--muted)">✕</button>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:.75rem">Letzter Besuch: vor ${c.wo} Wochen${c.wo>=6?' · <strong style="color:var(--red)">überfällig</strong>':''}</div>
+      ${['Gesprächsziele','Offene Fragen'].map((t,ti)=>`
+        <div style="margin-bottom:.75rem">
+          <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">${t}</div>
+          ${(ti===0?ziele:fragen)[c.seg].map(it=>`<div style="font-size:12px;padding:4px 0;border-bottom:.5px solid var(--bl)">${it}</div>`).join('')}
+        </div>`).join('')}
+      ${existingNote?`<div style="margin-bottom:.75rem">
+        <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Letzte Gesprächsnotiz</div>
+        <div style="font-size:12px;background:var(--amber-bg);border:.5px solid #FAC775;border-radius:6px;padding:8px 10px;line-height:1.5">${existingNote}</div>
+      </div>`:''}
+      <div style="display:flex;gap:5px;margin-top:.75rem;flex-wrap:wrap">
+        ${c.tel?`<a href="tel:${c.tel}" class="btn" style="text-decoration:none;flex:1;text-align:center">📞 Anrufen · ${c.tel}</a>`:''}
+        ${addr?`<a href="${mapsUrl(c)}" target="_blank" class="btn" style="text-decoration:none;flex:1;text-align:center">Maps öffnen</a>`:''}
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+}
+function closeBm(){const m=document.getElementById('bm');if(m)m.remove();}
+
+// ══ INIT ══════════════════════════════════════════════════════════════════════
+const loaded=loadState();
+if(!loaded){custs=DEF.map(c=>({...c}));}
+filt=[...custs];
+initNavSel();
+buildRP();
+applyF();
+buildWkTabs();
+renderTplTab();
+document.getElementById('yr-label').textContent=viewYr2;
+</script>
+</body>
+</html>
