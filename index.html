@@ -936,16 +936,22 @@ function saveNoteField(nk,custId,wkKey,di){
     notiz:   g(`nd-notiz-${nk}`),
   };
   setNote(custId,wkKey,di,val);
+  // Nur Note-Preview aktualisieren, NICHT renderTour() — würde Fenster schließen
+  const prev=document.querySelector(`[id^="nb-${nk}"]`)?.closest('.vr')?.querySelector('.note-preview');
+  const previewText=getNoteText(custId,wkKey,di);
+  if(prev){prev.textContent='📝 '+previewText;prev.title=previewText;}
+  else if(previewText){
+    const vr=document.getElementById(`nb-${nk}`)?.closest('.vr, div');
+    // Preview wird beim nächsten renderTour sichtbar
+  }
   const ns=document.getElementById(`ns-${nk}`);
   if(ns){ns.style.display='block';setTimeout(()=>ns.style.display='none',1200);}
-  renderTour();
 }
 // Abwärtskompatibilität: alte saveNote-Aufrufe abfangen
 function saveNote(nk,custId,wkKey,di,val){
   setNote(custId,wkKey,di,{notiz:val.substring(0,80)});
   const ns=document.getElementById(`ns-${nk}`);
   if(ns){ns.style.display='block';setTimeout(()=>ns.style.display='none',1200);}
-  renderTour();
 }
 
 // ══ DIKTIERFUNKTION MIT KEYWORD-ERKENNUNG ════════════════════════════════════
@@ -1072,7 +1078,7 @@ function stopDiktat(nk){
   if(btn){btn.textContent='🎙 Diktieren';btn.classList.remove('recording');}
   setDiktStatus(nk,'Diktat beendet — Felder bitte prüfen.',false);
   const ta=document.getElementById(`nd-notiz-${nk}`);
-  if(ta)ta.dispatchEvent(new Event('change'));
+  if(ta){ta.dispatchEvent(new Event('change'));}
 }
 function setDiktStatus(nk,msg,active){
   const el=document.getElementById(`nd-dikt-status-${nk}`);
