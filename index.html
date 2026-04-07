@@ -1151,7 +1151,9 @@ function updSyncBar(){
   const allKeys=[];
   wt.forEach((d,di)=>d.visits.forEach(v=>{
     const nk=noteKey(v.id,activeWkKey,di);
-    if(notes[nk]&&typeof notes[nk]==='object')allKeys.push({nk,custId:v.id,di});
+    const n=notes[nk];
+    const hatInhalt=n&&typeof n==='object'&&(n.typ||n.produkt||n.indikation||n.ergebnis||n.folge||n.material?.length||n.notiz);
+    if(hatInhalt)allKeys.push({nk,custId:v.id,di});
   }));
   const pending=allKeys.filter(({nk})=>!synced.has(nk));
   const done=allKeys.filter(({nk})=>synced.has(nk));
@@ -1176,7 +1178,9 @@ async function syncAllNotes(){
   const pending=[];
   wt.forEach((d,di)=>d.visits.forEach(v=>{
     const nk=noteKey(v.id,activeWkKey,di);
-    if(notes[nk]&&typeof notes[nk]==='object'&&!synced.has(nk))
+    const n=notes[nk];
+    const hatInhalt=n&&typeof n==='object'&&(n.typ||n.produkt||n.indikation||n.ergebnis||n.folge||n.material?.length||n.notiz);
+    if(hatInhalt&&!synced.has(nk))
       pending.push({nk,custId:v.id,di,cust:custs.find(c=>c.id===v.id)});
   }));
   if(!pending.length){info.textContent='Keine ausstehenden Notizen.';return;}
@@ -1195,7 +1199,7 @@ async function syncAllNotes(){
             region:cust.region,kampagne:cust.kamp||'',typ:cust.typ},
       besuch:{woche:activeWkKey,tag:di,gespraechstyp:note.typ||'',produktfokus:note.produkt||'',
               indikation:note.indikation||'',ergebnis:note.ergebnis||'',
-              folgemassnahme:note.folge||'',material:Array.isArray(note.material)?note.material.join(', '):(note.material||''),
+              folgemassnahme:note.folge||'',material:Array.isArray(note.material)?note.material.filter(Boolean).join(', '):(note.material||''),
               notiz:note.notiz||''},
       quelle:'Tourenplaner Dermatologie Bayern v10'
     };
