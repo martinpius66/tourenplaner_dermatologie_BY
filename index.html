@@ -145,6 +145,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#378ADD;box-sh
 .nd-warn{font-size:9px;color:var(--amber);background:var(--amber-bg);border:.5px solid #FAC775;border-radius:3px;padding:2px 6px;margin-top:3px}
 .nd-charcount{font-size:9px;color:var(--hint)}
 .nd-charcount.over{color:var(--red)}
+.nd-material-group{display:flex;flex-wrap:wrap;gap:4px 10px;padding:4px 0}
+.nd-material-group label{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink);cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0}
+.nd-material-group input[type=checkbox]{width:12px;height:12px;cursor:pointer;accent-color:var(--ink);flex-shrink:0}
 .nd-diktat-row{display:flex;gap:4px;align-items:center;margin-bottom:3px}
 .nd-diktat-btn{height:24px;padding:0 8px;font-size:11px;border:.5px solid rgba(0,0,0,.18);border-radius:4px;background:var(--white);cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap}
 .nd-diktat-btn:hover{background:var(--bg)}
@@ -733,8 +736,9 @@ function noteKey(custId,wkKey,di){return`${custId}_${wkKey}_${di}`;}
 function getNote(custId,wkKey,di){return notes[noteKey(custId,wkKey,di)]||{};}
 function getNoteText(custId,wkKey,di){
   const n=getNote(custId,wkKey,di);
-  if(typeof n==='string')return n; // Abwärtskompatibilität v7
-  return[n.typ||'',n.produkt||'',n.indikation||'',n.ergebnis||'',n.folge||'',n.notiz||''].filter(Boolean).join(' · ');
+  if(typeof n==='string')return n;
+  const mat=Array.isArray(n.material)?n.material.join(', '):(n.material||'');
+  return[n.typ||'',n.produkt||'',n.indikation||'',n.ergebnis||'',n.folge||'',mat,n.notiz||''].filter(Boolean).join(' · ');
 }
 function setNote(custId,wkKey,di,val){
   const k=noteKey(custId,wkKey,di);
@@ -866,16 +870,14 @@ function renderTour(){
                   <option${(existingNote.folge==='Keine Folgemaßnahme'?' selected':'')}>Keine Folgemaßnahme</option>
                 </select>
               </div>
-              <div class="nd-field">
+              <div class="nd-field" style="grid-column:1/-1">
                 <label>Material übergeben</label>
-                <select id="nd-material-${nk}" onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">
-                  <option value="">– wählen –</option>
-                  <option${(existingNote.material==='Produktmuster'?' selected':'')}>Produktmuster</option>
-                  <option${(existingNote.material==='Broschüre'?' selected':'')}>Broschüre</option>
-                  <option${(existingNote.material==='Studienunterlagen'?' selected':'')}>Studienunterlagen</option>
-                  <option${(existingNote.material==='Mehrere Materialien'?' selected':'')}>Mehrere Materialien</option>
-                  <option${(existingNote.material==='Kein Material'?' selected':'')}>Kein Material</option>
-                </select>
+                <div class="nd-material-group" id="nd-mat-${nk}">
+                  ${['Produktmuster','Broschüre','Studienunterlagen','Gesprächsleitfaden','Preisliste','Mehrere Materialien','Kein Material'].map(m=>{
+                    const checked=(Array.isArray(existingNote.material)?existingNote.material:[existingNote.material]).includes(m);
+                    return `<label><input type="checkbox" value="${m}" ${checked?'checked':''} onchange="saveNoteField('${nk}',${v.id},'${activeWkKey}',${di})">${m}</label>`;
+                  }).join('')}
+                </div>
               </div>
             </div>
             <div class="nd-notiz">
@@ -926,24 +928,19 @@ function updCharCount(nk){
 }
 function saveNoteField(nk,custId,wkKey,di){
   const g=id=>{ const el=document.getElementById(id); return el?el.value:''; };
+  // Material: alle angehakten Checkboxen als Array
+  const matBoxes=document.querySelectorAll(`#nd-mat-${nk} input[type=checkbox]:checked`);
+  const material=[...matBoxes].map(cb=>cb.value);
   const val={
     typ:     g(`nd-typ-${nk}`),
     produkt: g(`nd-produkt-${nk}`),
     indikation: g(`nd-indikation-${nk}`),
     ergebnis:g(`nd-ergebnis-${nk}`),
     folge:   g(`nd-folge-${nk}`),
-    material:g(`nd-material-${nk}`),
+    material,
     notiz:   g(`nd-notiz-${nk}`),
   };
   setNote(custId,wkKey,di,val);
-  // Nur Note-Preview aktualisieren, NICHT renderTour() — würde Fenster schließen
-  const prev=document.querySelector(`[id^="nb-${nk}"]`)?.closest('.vr')?.querySelector('.note-preview');
-  const previewText=getNoteText(custId,wkKey,di);
-  if(prev){prev.textContent='📝 '+previewText;prev.title=previewText;}
-  else if(previewText){
-    const vr=document.getElementById(`nb-${nk}`)?.closest('.vr, div');
-    // Preview wird beim nächsten renderTour sichtbar
-  }
   const ns=document.getElementById(`ns-${nk}`);
   if(ns){ns.style.display='block';setTimeout(()=>ns.style.display='none',1200);}
 }
