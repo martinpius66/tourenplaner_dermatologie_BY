@@ -160,6 +160,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#378ADD;box-sh
 .nd-webhook-status{font-size:10px;text-align:center;margin-top:3px;min-height:14px}
 .nd-webhook-status.ok{color:var(--green)}
 .nd-webhook-status.err{color:var(--red)}
+.sync-bar{display:flex;align-items:center;gap:8px;padding:6px 0;margin-bottom:4px;flex-wrap:wrap}
+.sync-all-btn{font-size:11px;font-weight:500;padding:5px 12px;background:var(--ink);color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap}
+.sync-all-btn:hover{opacity:.85}
+.sync-all-btn:disabled{opacity:.35;cursor:not-allowed}
+.sync-info{font-size:10px;color:var(--muted)}
+.sync-info.pending{color:var(--amber);font-weight:500}
+.sync-info.done{color:var(--green)}
+.vr-synced{background:#EAF3DE!important}
+.vr-synced .vl.note{background:#EAF3DE;color:var(--green);border-color:#C0DD97}
 
 .ar{padding:5px 12px;border-top:.5px solid var(--bl);display:flex;gap:4px;flex-wrap:wrap}
 .ar select{flex:1;min-width:160px;height:24px;font-size:11px}
@@ -351,6 +360,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#378ADD;box-sh
       <div class="wt-tabs" id="wt-tabs"></div>
     </div>
     <div id="tour-out"><div class="empty"><strong>Woche wählen und Tour generieren</strong>Ärzte links auswählen, Woche wählen, dann generieren.</div></div>
+    <div class="sync-bar" id="sync-bar" style="display:none">
+      <button class="sync-all-btn" id="sync-all-btn" onclick="syncAllNotes()">↗ Alle Notizen synchronisieren</button>
+      <span class="sync-info" id="sync-info"></span>
+    </div>
   </div>
 
   <!-- TAB JAHRESÜBERSICHT -->
@@ -507,7 +520,8 @@ let sSegs={a:true,b:true,c:true,d:true};
 let selR=new Set();
 let selected=new Set(), pinned=new Set();
 let tours={};          // key "YYYY-MM-W#" → [{l,d,dateObj,visits,totalMin,totalKm,startOrt}]
-let notes={};          // key "custId_wkKey_dayIdx" → string
+let notes={};          // key "custId_wkKey_dayIdx" → object
+let synced=new Set();  // keys die bereits synchronisiert wurden
 let templates=[];
 let activeWkKey=null;
 let filt=[];
@@ -519,7 +533,7 @@ let currentWeeks=[];
 // ══ PERSISTENCE ═════════════════════════════════════════════════════════════
 function saveState(){
   try{
-    const state={custs,nid,tours,notes,templates,pinned:[...pinned],selected:[...selected],activeWkKey};
+    const state={custs,nid,tours,notes,templates,pinned:[...pinned],selected:[...selected],activeWkKey,synced:[...synced]};
     localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
     showSaveInd();
   }catch(e){console.warn('Speichern fehlgeschlagen:',e);}
@@ -533,6 +547,7 @@ function loadState(){
       custs=s.custs;nid=s.nid||61;
       tours=s.tours||{};notes=s.notes||{};templates=s.templates||[];
       activeWkKey=s.activeWkKey||null;
+      synced=new Set(s.synced||[]);
       pinned=new Set(s.pinned||[]);selected=new Set(s.selected||[]);
       return true;
     }
@@ -783,10 +798,10 @@ function renderTour(){
           const nk=noteKey(v.id,activeWkKey,di);
           const existingNote=notes[nk]||{};
           const notePreview=getNoteText(v.id,activeWkKey,di);
-          return `<div class="vr${pinned.has(v.id)?' vpin':''}">
+          return `<div class="vr${pinned.has(v.id)?' vpin':''}${synced.has(nk)?' vr-synced':''}">
             <div class="vdot" style="background:${segDot(v.seg)}"></div>
             <div>
-              <div class="vn">${v.name}${pinned.has(v.id)?' 📌':''}</div>
+              <div class="vn">${v.name}${pinned.has(v.id)?' 📌':''}${synced.has(nk)?' <span style="font-size:9px;color:var(--green);background:var(--green-bg);padding:1px 4px;border-radius:3px">✓ sync</span>':''}</div>
               <div class="vd">${v.einrichtung} · ${v.ort}</div>
               ${addr?`<div class="vaddr">${addr}</div>`:''}
               ${v.kamp?`<span class="vkamp">${v.kamp}</span>`:''}
@@ -915,6 +930,7 @@ function renderTour(){
   }).join('');
   if(unpl.length)html+=`<div class="ubox"><h4>Nicht eingeplant (Kapazität)</h4><div class="utags">${unpl.map(c=>`<span class="utag">[${c.seg.toUpperCase()}] ${c.name}</span>`).join('')}</div></div>`;
   document.getElementById('tour-out').innerHTML=html;
+  updSyncBar();
 }
 
 function togNote(nk){
@@ -1084,7 +1100,7 @@ function setDiktStatus(nk,msg,active){
 
 // ══ WEBHOOK / N8N-SYNC ═══════════════════════════════════════════════════════
 // n8n Webhook-URL hier eintragen (nach Einrichtung ersetzen):
-const N8N_WEBHOOK_URL='https://n8n.srv1077415.hstgr.cloud/webhook/da482da5-703c-429d-bf59-0eb6c79d66b2';
+const N8N_WEBHOOK_URL='https://DEINE-N8N-URL/webhook/tourenplaner';
 
 function sendWebhook(nk,custId,wkKey,di){
   const btn=document.getElementById(`nd-wh-btn-${nk}`);
@@ -1122,6 +1138,86 @@ function setWhStatus(nk,msg,ok){
   el.textContent=msg;
   el.classList.toggle('ok',ok===true);
   el.classList.toggle('err',ok===false);
+}
+
+// ══ SYNC-ALL ══════════════════════════════════════════════════════════════════
+function updSyncBar(){
+  const wt=activeWkKey?tours[activeWkKey]:null;
+  const bar=document.getElementById('sync-bar');
+  const info=document.getElementById('sync-info');
+  const btn=document.getElementById('sync-all-btn');
+  if(!wt||!bar){if(bar)bar.style.display='none';return;}
+  // Alle Notiz-Keys der aktiven Woche sammeln
+  const allKeys=[];
+  wt.forEach((d,di)=>d.visits.forEach(v=>{
+    const nk=noteKey(v.id,activeWkKey,di);
+    if(notes[nk]&&typeof notes[nk]==='object')allKeys.push({nk,custId:v.id,di});
+  }));
+  const pending=allKeys.filter(({nk})=>!synced.has(nk));
+  const done=allKeys.filter(({nk})=>synced.has(nk));
+  bar.style.display=allKeys.length>0?'flex':'none';
+  if(pending.length>0){
+    info.textContent=`${pending.length} Notiz${pending.length>1?'en':''} ausstehend · ${done.length} synchronisiert`;
+    info.className='sync-info pending';
+    btn.disabled=false;
+  } else if(done.length>0){
+    info.textContent=`Alle ${done.length} Notizen synchronisiert ✓`;
+    info.className='sync-info done';
+    btn.disabled=true;
+  }
+}
+
+async function syncAllNotes(){
+  const wt=activeWkKey?tours[activeWkKey]:null;
+  if(!wt)return;
+  const btn=document.getElementById('sync-all-btn');
+  const info=document.getElementById('sync-info');
+  // Alle ausstehenden Notizen sammeln
+  const pending=[];
+  wt.forEach((d,di)=>d.visits.forEach(v=>{
+    const nk=noteKey(v.id,activeWkKey,di);
+    if(notes[nk]&&typeof notes[nk]==='object'&&!synced.has(nk))
+      pending.push({nk,custId:v.id,di,cust:custs.find(c=>c.id===v.id)});
+  }));
+  if(!pending.length){info.textContent='Keine ausstehenden Notizen.';return;}
+  btn.disabled=true;
+  btn.textContent='Sende…';
+  info.textContent=`0 / ${pending.length} gesendet…`;
+  info.className='sync-info pending';
+  let ok=0,err=0;
+  for(const {nk,custId,di,cust} of pending){
+    if(!cust)continue;
+    const note=notes[nk];
+    const payload={
+      timestamp:new Date().toISOString(),
+      arzt:{name:cust.name,einrichtung:cust.einrichtung,ort:cust.ort,plz:cust.plz||'',
+            str:cust.str||'',tel:cust.tel||'',segment:cust.seg.toUpperCase(),
+            region:cust.region,kampagne:cust.kamp||'',typ:cust.typ},
+      besuch:{woche:activeWkKey,tag:di,gespraechstyp:note.typ||'',produktfokus:note.produkt||'',
+              indikation:note.indikation||'',ergebnis:note.ergebnis||'',
+              folgemassnahme:note.folge||'',material:Array.isArray(note.material)?note.material.join(', '):(note.material||''),
+              notiz:note.notiz||''},
+      quelle:'Tourenplaner Dermatologie Bayern v10'
+    };
+    try{
+      const r=await fetch(N8N_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(r.ok){synced.add(nk);ok++;}
+      else{err++;}
+    }catch(e){err++;}
+    info.textContent=`${ok+err} / ${pending.length} gesendet…`;
+  }
+  scheduleSave();
+  btn.textContent='↗ Alle Notizen synchronisieren';
+  if(err===0){
+    info.textContent=`Alle ${ok} Notizen erfolgreich synchronisiert ✓`;
+    info.className='sync-info done';
+    btn.disabled=true;
+  } else {
+    info.textContent=`${ok} synchronisiert · ${err} fehlgeschlagen — erneut versuchen`;
+    info.className='sync-info pending';
+    btn.disabled=false;
+  }
+  renderTour();
 }
 
 function setStart(key,di,val){if(tours[key])tours[key][di].startOrt=val;renderTour();}
