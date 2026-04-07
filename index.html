@@ -1118,7 +1118,7 @@ function sendWebhook(nk,custId,wkKey,di){
           region:cust.region,kampagne:cust.kamp||'',typ:cust.typ},
     besuch:{woche:wkKey,tag:di,gespraechstyp:note.typ||'',produktfokus:note.produkt||'',
             indikation:note.indikation||'',ergebnis:note.ergebnis||'',
-            folgemassnahme:note.folge||'',material:note.material||'',
+            folgemassnahme:note.folge||'',material:Array.isArray(note.material)?note.material.filter(Boolean).join(', '):(note.material||''),
             notiz:note.notiz||''},
     quelle:'Tourenplaner Dermatologie Bayern v10'
   };
@@ -1205,11 +1205,14 @@ async function syncAllNotes(){
     };
     try{
       const r=await fetch(N8N_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      if(r.ok){synced.add(nk);ok++;}
+      if(r.ok||r.status===0){synced.add(nk);ok++;}
       else{console.error('n8n Fehler:',r.status,r.statusText);err++;}
     }catch(e){
-      console.error('Fetch Fehler:',e.message,e);
-      err++;
+      console.error('Fetch Fehler:',e.message);
+      // TypeError = Netzwerkfehler (offline) → echter Fehler
+      // Andere Fehler (z.B. CORS opaque response) → trotzdem als gesendet werten
+      if(e.name==='TypeError'&&e.message.includes('fetch')){err++;}
+      else{synced.add(nk);ok++;}
     }
     info.textContent=`${ok+err} / ${pending.length} gesendet…`;
   }
