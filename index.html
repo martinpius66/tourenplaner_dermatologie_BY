@@ -1205,12 +1205,11 @@ async function syncAllNotes(){
     };
     try{
       const r=await fetch(N8N_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      // n8n gibt manchmal 200 ohne Body — beides als Erfolg werten
-      synced.add(nk);ok++;
+      if(r.ok){synced.add(nk);ok++;}
+      else{console.error('n8n Fehler:',r.status,r.statusText);err++;}
     }catch(e){
-      // Netzwerkfehler (offline) → als Fehler werten
-      if(e instanceof TypeError){err++;}
-      else{synced.add(nk);ok++;} // Sonstiger Fehler (z.B. CORS-Response) → trotzdem ok
+      console.error('Fetch Fehler:',e.message,e);
+      err++;
     }
     info.textContent=`${ok+err} / ${pending.length} gesendet…`;
   }
