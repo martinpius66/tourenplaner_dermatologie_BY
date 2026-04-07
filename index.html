@@ -779,7 +779,7 @@ function renderTour(){
     return `<div class="tday">
       <div class="dh" onclick="togDay('${activeWkKey}',${di})">
         <div>
-          <div class="dn">${d.l}, ${d.d}${d.dateObj?d.dateObj.getFullYear():''}</div>
+          <div class="dn">${d.l}, ${d.d}${d.dateObj?new Date(d.dateObj).getFullYear():''}</div>
           <div class="dsegs">${badges||'<span style="font-size:10px;color:var(--hint)">kein Termin</span>'}<span style="font-size:10px;color:var(--muted);margin-left:4px">· Start: ${d.startOrt}</span></div>
         </div>
         <div class="dr" onclick="event.stopPropagation()">
