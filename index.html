@@ -359,11 +359,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#378ADD;box-sh
       </div>
       <div class="wt-tabs" id="wt-tabs"></div>
     </div>
-    <div id="tour-out"><div class="empty"><strong>Woche wählen und Tour generieren</strong>Ärzte links auswählen, Woche wählen, dann generieren.</div></div>
     <div class="sync-bar" id="sync-bar" style="display:none">
       <button class="sync-all-btn" id="sync-all-btn" onclick="syncAllNotes()">↗ Alle Notizen synchronisieren</button>
       <span class="sync-info" id="sync-info"></span>
     </div>
+    <div id="tour-out"><div class="empty"><strong>Woche wählen und Tour generieren</strong>Ärzte links auswählen, Woche wählen, dann generieren.</div></div>
   </div>
 
   <!-- TAB JAHRESÜBERSICHT -->
@@ -546,6 +546,8 @@ function loadState(){
     if(s.custs&&s.custs.length>0){
       custs=s.custs;nid=s.nid||61;
       tours=s.tours||{};notes=s.notes||{};templates=s.templates||[];
+      // dateObj aus String wiederherstellen
+      Object.values(tours).forEach(wt=>{if(wt)wt.forEach(d=>{if(d.days)d.days.forEach(day=>{if(day.dateObj)day.dateObj=new Date(day.dateObj);});if(d.dateObj)d.dateObj=new Date(d.dateObj);});});
       activeWkKey=s.activeWkKey||null;
       synced=new Set(s.synced||[]);
       pinned=new Set(s.pinned||[]);selected=new Set(s.selected||[]);
@@ -614,7 +616,7 @@ function buildWkTabs(){
 }
 function prevMo(){navMo--;if(navMo<0){navMo=11;navYr--;}document.getElementById('nav-mo').value=navMo;document.getElementById('nav-yr').value=navYr;buildWkTabs();}
 function nextMo(){navMo++;if(navMo>11){navMo=0;navYr++;}document.getElementById('nav-mo').value=navMo;document.getElementById('nav-yr').value=navYr;buildWkTabs();}
-function switchWk(key){activeWkKey=key;buildWkTabs();updBtn();renderTour();scheduleSave();}
+function switchWk(key){activeWkKey=key;buildWkTabs();updBtn();renderTour();updSyncBar();scheduleSave();}
 function resetWk(key){
   if(!confirm('Woche wirklich zurücksetzen?'))return;
   delete tours[key];
@@ -749,6 +751,22 @@ const m2t=m=>`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
 // ══ NOTE KEY ══════════════════════════════════════════════════════════════════
 function noteKey(custId,wkKey,di){return`${custId}_${wkKey}_${di}`;}
 function getNote(custId,wkKey,di){return notes[noteKey(custId,wkKey,di)]||{};}
+
+function getLastNote(custId, excludeWkKey){
+  const matches=[];
+  Object.entries(notes).forEach(([k,n])=>{
+    const parts=k.split('_');
+    if(parts[0]===String(custId)&&n&&typeof n==='object'&&(n.typ||n.produkt||n.indikation||n.ergebnis||n.folge||n.notiz)){
+      const wkKey=parts.slice(1,-1).join('_');
+      if(excludeWkKey&&wkKey===excludeWkKey)return; // aktuelle Woche überspringen
+      const di=parseInt(parts[parts.length-1]);
+      matches.push({k,wkKey,di,n});
+    }
+  });
+  if(!matches.length)return null;
+  matches.sort((a,b)=>b.wkKey.localeCompare(a.wkKey));
+  return matches[0];
+}
 function getNoteText(custId,wkKey,di){
   const n=getNote(custId,wkKey,di);
   if(typeof n==='string')return n;
@@ -959,6 +977,7 @@ function saveNoteField(nk,custId,wkKey,di){
   setNote(custId,wkKey,di,val);
   const ns=document.getElementById(`ns-${nk}`);
   if(ns){ns.style.display='block';setTimeout(()=>ns.style.display='none',1200);}
+  updSyncBar();
 }
 // Abwärtskompatibilität: alte saveNote-Aufrufe abfangen
 function saveNote(nk,custId,wkKey,di,val){
@@ -1457,7 +1476,19 @@ function showBrief(id,wkKey,di){
   const ziele={a:['Jahresplanung & Umsatzziel besprechen','Cross-Selling-Potenzial identifizieren','KOL-/Studienkooperation ansprechen'],b:['Produktnutzung ausweiten','Konkurrenzprodukte verdrängen','Nächsten Termin sichern'],c:['Re-Order sicherstellen','Zufriedenheit prüfen','Weiterempfehlung ansprechen'],d:['Grund für Inaktivität klären','Reaktivierungsangebot platzieren','Folgebesuch vereinbaren']};
   const fragen={a:['Welche neuen Eingriffe planen Sie in Q3?','Wie bewerten Sie unsere Servicequalität?','Welche Mitbewerber sind aktuell präsent?'],b:['Was hindert Sie an intensiverer Nutzung?','Welche Ergebnisse hatten Sie bisher?','Wer entscheidet über neue Beschaffungen?'],c:['Sind Sie mit dem Bestellprozess zufrieden?','Gibt es Qualitätsprobleme?','Würden Sie uns weiterempfehlen?'],d:['Was hat Sie bewogen, woanders zu bestellen?','Welche Bedingung würde eine Rückkehr ermöglichen?','Darf ich in 6 Wochen erneut anfragen?']};
   const addr=c.str?`${c.str}, ${c.plz||''} ${c.ort}`:'';
-  const existingNote=getNoteText(id,wkKey,di);
+  const currentNoteText=getNoteText(id,wkKey,di);
+  // Letzte Notiz aus einer ANDEREN Woche suchen
+  const lastNoteEntry=getLastNote(id,wkKey);
+  const lastNoteText=lastNoteEntry?[
+    lastNoteEntry.n.typ,lastNoteEntry.n.produkt,lastNoteEntry.n.indikation,
+    lastNoteEntry.n.ergebnis,lastNoteEntry.n.folge,
+    Array.isArray(lastNoteEntry.n.material)?lastNoteEntry.n.material.filter(Boolean).join(', '):(lastNoteEntry.n.material||''),
+    lastNoteEntry.n.notiz
+  ].filter(Boolean).join(' · '):'';
+  const wkLabel=lastNoteEntry?lastNoteEntry.wkKey.replace(/(\d{4})-(\d{2})-W(\d+)/,(_,y,m,w)=>{
+    const mo=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    return`${mo[parseInt(m)-1]} ${y}, KW ${w}`;
+  }):'';
   const div=document.createElement('div');div.id='bm';
   div.innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeBm()">
     <div class="modal">
@@ -1474,14 +1505,18 @@ function showBrief(id,wkKey,di){
         </div>
       </div>
       <div style="font-size:10px;color:var(--muted);margin-bottom:.75rem">Letzter Besuch: vor ${c.wo} Wochen${c.wo>=6?' · <strong style="color:var(--red)">überfällig</strong>':''}</div>
+      ${lastNoteText?`<div style="margin-bottom:.75rem">
+        <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Notiz letzter Besuch · ${wkLabel}</div>
+        <div style="font-size:12px;background:#E6F1FB;border:.5px solid #B5D4F4;border-radius:6px;padding:8px 10px;line-height:1.5">${lastNoteText}</div>
+      </div>`:''}
       ${['Gesprächsziele','Offene Fragen'].map((t,ti)=>`
         <div style="margin-bottom:.75rem">
           <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">${t}</div>
           ${(ti===0?ziele:fragen)[c.seg].map(it=>`<div style="font-size:12px;padding:4px 0;border-bottom:.5px solid var(--bl)">${it}</div>`).join('')}
         </div>`).join('')}
-      ${existingNote?`<div style="margin-bottom:.75rem">
-        <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Letzte Gesprächsnotiz</div>
-        <div style="font-size:12px;background:var(--amber-bg);border:.5px solid #FAC775;border-radius:6px;padding:8px 10px;line-height:1.5">${existingNote}</div>
+      ${currentNoteText?`<div style="margin-bottom:.75rem">
+        <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Aktuelle Gesprächsnotiz</div>
+        <div style="font-size:12px;background:var(--amber-bg);border:.5px solid #FAC775;border-radius:6px;padding:8px 10px;line-height:1.5">${currentNoteText}</div>
       </div>`:''}
       <div style="display:flex;gap:5px;margin-top:.75rem;flex-wrap:wrap">
         ${c.tel?`<a href="tel:${c.tel}" class="btn" style="text-decoration:none;flex:1;text-align:center">📞 Anrufen · ${c.tel}</a>`:''}
@@ -1510,7 +1545,7 @@ initNavSel(); // liest navYr/navMo — muss NACH der Wiederherstellung kommen
 buildRP();
 applyF();
 buildWkTabs();
-if(activeWkKey){renderTour();updKPIs();}
+if(activeWkKey){renderTour();updKPIs();updSyncBar();}
 renderTplTab();
 document.getElementById('yr-label').textContent=viewYr2;
 </script>
