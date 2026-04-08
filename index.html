@@ -1228,12 +1228,12 @@ async function syncAllNotes(){
       else{console.error('n8n Fehler:',r.status,r.statusText);err++;}
     }catch(e){
       console.error('Fetch Fehler:',e.message);
-      // TypeError = Netzwerkfehler (offline) → echter Fehler
-      // Andere Fehler (z.B. CORS opaque response) → trotzdem als gesendet werten
       if(e.name==='TypeError'&&e.message.includes('fetch')){err++;}
       else{synced.add(nk);ok++;}
     }
     info.textContent=`${ok+err} / ${pending.length} gesendet…`;
+    // 800ms Pause damit Google Sheets jeden Eintrag verarbeiten kann
+    if(ok+err < pending.length) await new Promise(res=>setTimeout(res,800));
   }
   scheduleSave();
   btn.textContent='↗ Alle Notizen synchronisieren';
