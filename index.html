@@ -1620,26 +1620,53 @@ buildRP();
 applyF();
 buildWkTabs();
 if(activeWkKey){renderTour();updKPIs();updSyncBar();}
-  async function requestKiAnalyse(name, einrichtung, ort) {
+ async function requestKiAnalyse(name, einrichtung, ort) {
   const btn = event.target;
-  btn.textContent = '⏳ Wird angefordert…';
+  btn.textContent = '⏳ Analyse läuft…';
   btn.disabled = true;
+
   try {
-    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/aa94d526-d0a2-46e8-b95f-8774bf2ed20f', {
+    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook-test/aa94d526-d0a2-46e8-b95f-8774bf2ed20f', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ arztName: name, einrichtung, ort })
     });
-    if (res.ok) {
-      btn.textContent = '✅ Briefing angefordert';
-    } else {
-      btn.textContent = '❌ Fehler – erneut versuchen';
-      btn.disabled = false;
+
+    const text = await res.text();
+
+    // Briefing-Bereich im Modal einfügen
+    const modal = btn.closest('.modal');
+    let briefingDiv = modal.querySelector('#ki-briefing');
+    if (!briefingDiv) {
+      briefingDiv = document.createElement('div');
+      briefingDiv.id = 'ki-briefing';
+      briefingDiv.style = 'margin-top:.75rem;font-size:12px;background:#E6F1FB;border:.5px solid #B5D4F4;border-radius:6px;padding:10px;line-height:1.6;white-space:pre-wrap';
+      btn.parentElement.insertBefore(briefingDiv, btn.parentElement.firstChild);
     }
+    briefingDiv.textContent = text;
+
+    // Buttons für E-Mail und Druck
+    btn.textContent = '✅ Briefing geladen';
+    let aktionen = modal.querySelector('#ki-aktionen');
+    if (!aktionen) {
+      aktionen = document.createElement('div');
+      aktionen.id = 'ki-aktionen';
+      aktionen.style = 'display:flex;gap:5px;margin-top:5px';
+      aktionen.innerHTML = `
+        <button onclick="window.print()" class="btn" style="flex:1">🖨️ Drucken</button>
+        <button onclick="kiPerMail('${name}','${einrichtung}')" class="btn" style="flex:1">📧 E-Mail</button>`;
+      btn.parentElement.appendChild(aktionen);
+    }
+
   } catch(e) {
-    btn.textContent = '❌ Verbindungsfehler';
+    btn.textContent = '❌ Fehler – erneut versuchen';
     btn.disabled = false;
   }
+}
+
+function kiPerMail(name, einrichtung) {
+  const text = document.querySelector('#ki-briefing')?.textContent || '';
+  window.location.href = `mailto:?subject=Pre-Call-Briefing: ${name}&body=${encodeURIComponent(text)}`;
 }
 renderTplTab();
 document.getElementById('yr-label').textContent=viewYr2;
