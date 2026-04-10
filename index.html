@@ -1625,7 +1625,7 @@ if(activeWkKey){renderTour();updKPIs();updSyncBar();}
   btn.textContent = '⏳ Wird angefordert…';
   btn.disabled = true;
   try {
-    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook-test/aa94d526-d0a2-46e8-b95f-8774bf2ed20f', {
+    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/aa94d526-d0a2-46e8-b95f-8774bf2ed20f', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ arztName: name, einrichtung, ort })
