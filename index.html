@@ -1593,7 +1593,8 @@ function showBrief(id,wkKey,di){
       </div>`:''}
       <div style="display:flex;gap:5px;margin-top:.75rem;flex-wrap:wrap">
         ${c.tel?`<a href="tel:${c.tel}" class="btn" style="text-decoration:none;flex:1;text-align:center">📞 Anrufen · ${c.tel}</a>`:''}
-        ${addr?`<a href="${mapsUrl(c)}" target="_blank" class="btn" style="text-decoration:none;flex:1;text-align:center">Maps öffnen</a>`:''}
+       ${addr?`<a href="${mapsUrl(c)}" target="_blank" class="btn" style="text-decoration:none;flex:1;text-align:center">Maps öffnen</a>`:''}
+        <button onclick="requestKiAnalyse('${c.name}','${c.einrichtung}','${c.ort}')" class="btn" style="flex:1;background:var(--accent,#185FA5);color:#fff;border:none;cursor:pointer">🤖 KI-Analyse</button>
       </div>
     </div>
   </div>`;
@@ -1619,6 +1620,27 @@ buildRP();
 applyF();
 buildWkTabs();
 if(activeWkKey){renderTour();updKPIs();updSyncBar();}
+  async function requestKiAnalyse(name, einrichtung, ort) {
+  const btn = event.target;
+  btn.textContent = '⏳ Wird angefordert…';
+  btn.disabled = true;
+  try {
+    const res = await fetch('DEINE_N8N_WEBHOOK_URL', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ arztName: name, einrichtung, ort })
+    });
+    if (res.ok) {
+      btn.textContent = '✅ Briefing angefordert';
+    } else {
+      btn.textContent = '❌ Fehler – erneut versuchen';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    btn.textContent = '❌ Verbindungsfehler';
+    btn.disabled = false;
+  }
+}
 renderTplTab();
 document.getElementById('yr-label').textContent=viewYr2;
 </script>
