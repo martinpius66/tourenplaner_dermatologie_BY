@@ -1671,6 +1671,32 @@ function kiPerMail(name, einrichtung) {
 }
 renderTplTab();
 document.getElementById('yr-label').textContent=viewYr2;
+  async function requestPraxisRecherche(name, einrichtung, ort) {
+  const btn = event.target;
+  btn.textContent = '⏳ Recherche läuft…';
+  btn.disabled = true;
+  try {
+    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/65658d2d-fb07-4eea-b13d-5faa4c4351c4', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ arztName: name, einrichtung, ort })
+    });
+    const text = await res.text();
+    const modal = btn.closest('.modal');
+    let rechercheDiv = modal.querySelector('#praxis-recherche');
+    if (!rechercheDiv) {
+      rechercheDiv = document.createElement('div');
+      rechercheDiv.id = 'praxis-recherche';
+      rechercheDiv.style = 'margin-top:.75rem;font-size:12px;background:#E1F5EE;border:.5px solid #9FE1CB;border-radius:6px;padding:10px;line-height:1.6;white-space:pre-wrap';
+      btn.parentElement.insertBefore(rechercheDiv, btn.parentElement.firstChild);
+    }
+    rechercheDiv.textContent = text;
+    btn.textContent = '✅ Recherche fertig';
+  } catch(e) {
+    btn.textContent = '❌ Fehler – erneut versuchen';
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
