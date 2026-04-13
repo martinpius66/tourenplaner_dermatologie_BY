@@ -1192,7 +1192,7 @@ function setDiktStatus(nk,msg,active){
 
 // ══ WEBHOOK / N8N-SYNC ═══════════════════════════════════════════════════════
 // n8n Webhook-URL hier eintragen (nach Einrichtung ersetzen):
-const N8N_WEBHOOK_URL='https://n8n.srv1077415.hstgr.cloud/webhook/da482da5-703c-429d-bf59-0eb6c79d66b2';
+const N8N_WEBHOOK_URL='https://n8n.srv1077415.hstgr.cloud/webhook/praxis-recherche';
 
 function sendWebhook(nk,custId,wkKey,di){
   const btn=document.getElementById(`nd-wh-btn-${nk}`);
@@ -1627,7 +1627,7 @@ if(activeWkKey){renderTour();updKPIs();updSyncBar();}
   btn.disabled = true;
 
   try {
-    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/aa94d526-d0a2-46e8-b95f-8774bf2ed20f', {
+    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/praxis-recherche', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ arztName: name, einrichtung, ort })
