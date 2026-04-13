@@ -1595,6 +1595,7 @@ function showBrief(id,wkKey,di){
         ${c.tel?`<a href="tel:${c.tel}" class="btn" style="text-decoration:none;flex:1;text-align:center">📞 Anrufen · ${c.tel}</a>`:''}
        ${addr?`<a href="${mapsUrl(c)}" target="_blank" class="btn" style="text-decoration:none;flex:1;text-align:center">Maps öffnen</a>`:''}
         <button onclick="requestKiAnalyse('${c.name}','${c.einrichtung}','${c.ort}')" class="btn" style="flex:1;background:var(--accent,#185FA5);color:#fff;border:none;cursor:pointer">🤖 KI-Analyse</button>
+        <button onclick="requestPraxisRecherche('${c.name}','${c.einrichtung}','${c.ort}')" class="btn" style="flex:1;background:var(--teal,#0F6E56);color:#fff;border:none;cursor:pointer">🔍 Praxis</button>
       </div>
     </div>
   </div>`;
