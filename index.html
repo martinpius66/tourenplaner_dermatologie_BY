@@ -1687,7 +1687,7 @@ document.getElementById('yr-label').textContent=viewYr2;
     if (!rechercheDiv) {
       rechercheDiv = document.createElement('div');
       rechercheDiv.id = 'praxis-recherche';
-      rechercheDiv.style = 'margin-top:.75rem;font-size:12px;background:#E1F5EE;border:.5px solid #9FE1CB;border-radius:6px;padding:10px;line-height:1.6;white-space:pre-wrap;max-height:300px;overflow-y:auto;';
+      rechercheDiv.style = 'margin-top:.75rem;font-size:12px;background:#E1F5EE;border:.5px solid #9FE1CB;border-radius:6px;padding:10px;line-height:1.6;white-space:pre-wrap;max-height:400px;overflow-y:auto;-webkit-overflow-scrolling:touch;';
       modal.insertBefore(rechercheDiv, modal.firstChild);
     }
     rechercheDiv.textContent = text;
