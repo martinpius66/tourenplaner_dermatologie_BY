@@ -1699,6 +1699,32 @@ document.getElementById('yr-label').textContent=viewYr2;
     btn.disabled = false;
   }
 }
+  async function requestProduktEmpfehlung(name, einrichtung, ort) {
+  const btn = event.target;
+  btn.textContent = '⏳ Analyse läuft…';
+  btn.disabled = true;
+  try {
+    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/40c5f7fc-95f3-4a31-b684-f617e9da2506', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ arztName: name, einrichtung, ort })
+    });
+    const text = await res.text();
+    const modal = btn.closest('.modal');
+    let div = modal.querySelector('#produkt-empfehlung');
+    if (!div) {
+      div = document.createElement('div');
+      div.id = 'produkt-empfehlung';
+      div.style = 'margin-top:.75rem;font-size:12px;background:#FAEEDA;border:.5px solid #FAC775;border-radius:6px;padding:10px;line-height:1.6;white-space:pre-wrap;max-height:400px;overflow-y:auto;-webkit-overflow-scrolling:touch;';
+      modal.insertBefore(div, modal.firstChild);
+    }
+    div.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/### (.*?)(\n|$)/g, '<h4>$1</h4>').replace(/## (.*?)(\n|$)/g, '<h3>$1</h3>').replace(/# (.*?)(\n|$)/g, '<h2>$1</h2>').replace(/\n/g, '<br>');
+    btn.textContent = '✅ Empfehlung fertig';
+  } catch(e) {
+    btn.textContent = '❌ Fehler – erneut versuchen';
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
