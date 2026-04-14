@@ -1048,6 +1048,7 @@ function saveNoteField(nk,custId,wkKey,di){
     notiz:   g(`nd-notiz-${nk}`),
   };
   setNote(custId,wkKey,di,val);
+  const c=custs.find(x=>x.id===custId);if(c)c.wo=0;scheduleSave();
   const ns=document.getElementById(`ns-${nk}`);
   if(ns){ns.style.display='block';setTimeout(()=>ns.style.display='none',1200);}
   updSyncBar();
