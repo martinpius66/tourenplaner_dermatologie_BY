@@ -1644,7 +1644,7 @@ if(activeWkKey){renderTour();updKPIs();updSyncBar();}
     briefingDiv.style = 'margin-top:.75rem;font-size:12px;background:#E6F1FB;border:.5px solid #B5D4F4;border-radius:6px;padding:10px;line-height:1.6;white-space:pre-wrap;overflow-y:auto;max-height:400px';
       btn.parentElement.insertBefore(briefingDiv, btn.parentElement.firstChild);
     }
-    briefingDiv.textContent = text;
+    briefingDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/### (.*?)(\n|$)/g, '<h4>$1</h4>').replace(/## (.*?)(\n|$)/g, '<h3>$1</h3>').replace(/# (.*?)(\n|$)/g, '<h2>$1</h2>').replace(/\n/g, '<br>');
 
     // Buttons für E-Mail und Druck
     btn.textContent = '✅ Briefing geladen';
