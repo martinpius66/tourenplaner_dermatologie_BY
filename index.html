@@ -1690,7 +1690,7 @@ document.getElementById('yr-label').textContent=viewYr2;
       rechercheDiv.style = 'margin-top:.75rem;font-size:12px;background:#E1F5EE;border:.5px solid #9FE1CB;border-radius:6px;padding:10px;line-height:1.6;white-space:pre-wrap;max-height:400px;overflow-y:auto;-webkit-overflow-scrolling:touch;';
       modal.insertBefore(rechercheDiv, modal.firstChild);
     }
-    rechercheDiv.textContent = text;
+    rechercheDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/### (.*?)(\n|$)/g, '<h4>$1</h4>').replace(/## (.*?)(\n|$)/g, '<h3>$1</h3>').replace(/# (.*?)(\n|$)/g, '<h2>$1</h2>').replace(/\n/g, '<br>');
     btn.textContent = '✅ Recherche fertig';
   } catch(e) {
     btn.textContent = '❌ Fehler – erneut versuchen';
