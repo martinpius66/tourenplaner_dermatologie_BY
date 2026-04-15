@@ -624,6 +624,15 @@ function loadState(){
       activeWkKey=s.activeWkKey||null;
       synced=new Set(s.synced||[]);
       pinned=new Set(s.pinned||[]);selected=new Set(s.selected||[]);
+      // Neue Ärzte aus DEF mergen die noch nicht im localStorage sind
+const existingIds = new Set(custs.map(c => c.id));
+const newCusts = DEF.filter(c => !existingIds.has(c.id));
+if (newCusts.length > 0) {
+  custs = [...custs, ...newCusts];
+  if (nid <= Math.max(...newCusts.map(c => c.id))) {
+    nid = Math.max(...newCusts.map(c => c.id)) + 1;
+  }
+}
       return true;
     }
   }catch(e){console.warn('Laden fehlgeschlagen:',e);}
