@@ -1715,6 +1715,14 @@ document.getElementById('yr-label').textContent=viewYr2;
     }
     rechercheDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/### (.*?)(\n|$)/g, '<h4>$1</h4>').replace(/## (.*?)(\n|$)/g, '<h3>$1</h3>').replace(/# (.*?)(\n|$)/g, '<h2>$1</h2>').replace(/\n/g, '<br>');
     btn.textContent = '✅ Recherche fertig';
+    let aktionenP = modal.querySelector('#praxis-aktionen');
+if (!aktionenP) {
+  aktionenP = document.createElement('div');
+  aktionenP.id = 'praxis-aktionen';
+  aktionenP.style = 'display:flex;gap:5px;margin-top:5px';
+  aktionenP.innerHTML = `<button onclick="vorlesen(this)" class="btn" style="flex:1;background:#534AB7;color:#fff;border:none;cursor:pointer">🔊 Vorlesen</button>`;
+  modal.appendChild(aktionenP);
+}
   } catch(e) {
     btn.textContent = '❌ Fehler – erneut versuchen';
     btn.disabled = false;
@@ -1741,6 +1749,14 @@ document.getElementById('yr-label').textContent=viewYr2;
     }
     div.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/### (.*?)(\n|$)/g, '<h4>$1</h4>').replace(/## (.*?)(\n|$)/g, '<h3>$1</h3>').replace(/# (.*?)(\n|$)/g, '<h2>$1</h2>').replace(/\n/g, '<br>');
     btn.textContent = '✅ Empfehlung fertig';
+    let aktionenP = modal.querySelector('#praxis-aktionen');
+if (!aktionenP) {
+  aktionenP = document.createElement('div');
+  aktionenP.id = 'praxis-aktionen';
+  aktionenP.style = 'display:flex;gap:5px;margin-top:5px';
+  aktionenP.innerHTML = `<button onclick="vorlesen(this)" class="btn" style="flex:1;background:#534AB7;color:#fff;border:none;cursor:pointer">🔊 Vorlesen</button>`;
+  modal.appendChild(aktionenP);
+}
   } catch(e) {
     btn.textContent = '❌ Fehler – erneut versuchen';
     btn.disabled = false;
