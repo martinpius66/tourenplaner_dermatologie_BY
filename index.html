@@ -1678,6 +1678,7 @@ if(activeWkKey){renderTour();updKPIs();updSyncBar();}
       aktionen.innerHTML = `
         <button onclick="window.print()" class="btn" style="flex:1">🖨️ Drucken</button>
         <button onclick="kiPerMail('${name}','${einrichtung}')" class="btn" style="flex:1">📧 E-Mail</button>`;
+        <button onclick="vorlesen(this)" class="btn" style="flex:1;background:#534AB7;color:#fff;border:none;cursor:pointer">🔊 Vorlesen</button>
       btn.parentElement.appendChild(aktionen);
     }
 
@@ -1744,6 +1745,18 @@ document.getElementById('yr-label').textContent=viewYr2;
     btn.textContent = '❌ Fehler – erneut versuchen';
     btn.disabled = false;
   }
+}
+  function vorlesen(btn) {
+  const modal = btn.closest('.modal');
+  const text = modal.querySelector('#ki-briefing, #praxis-recherche, #produkt-empfehlung')?.innerText || '';
+  if (!text) return;
+  if (speechSynthesis.speaking) { speechSynthesis.cancel(); btn.textContent = '🔊 Vorlesen'; return; }
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'de-DE';
+  utt.rate = 0.95;
+  utt.onend = () => btn.textContent = '🔊 Vorlesen';
+  btn.textContent = '⏹ Stoppen';
+  speechSynthesis.speak(utt);
 }
 </script>
 </body>
