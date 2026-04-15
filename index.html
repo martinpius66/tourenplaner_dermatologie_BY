@@ -1748,12 +1748,21 @@ document.getElementById('yr-label').textContent=viewYr2;
 }
   function vorlesen(btn) {
   const modal = btn.closest('.modal');
-  const text = modal.querySelector('#ki-briefing, #praxis-recherche, #produkt-empfehlung')?.innerText || '';
-  if (!text) return;
+  const div = modal.querySelector('#ki-briefing, #praxis-recherche, #produkt-empfehlung');
+  if (!div) return;
+  const text = div.innerText
+    .replace(/---/g, '')
+    .replace(/--/g, '')
+    .replace(/={1,}/g, '')
+    .replace(/#{1,}/g, '')
+    .replace(/\*{1,}/g, '')
+    .replace(/\n{2,}/g, '. ')
+    .trim();
   if (speechSynthesis.speaking) { speechSynthesis.cancel(); btn.textContent = '🔊 Vorlesen'; return; }
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = 'de-DE';
-  utt.rate = 0.95;
+  utt.rate = 1.1;
+  utt.pitch = 1;
   utt.onend = () => btn.textContent = '🔊 Vorlesen';
   btn.textContent = '⏹ Stoppen';
   speechSynthesis.speak(utt);
