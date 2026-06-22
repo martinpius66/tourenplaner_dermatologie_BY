@@ -1213,7 +1213,7 @@ function setDiktStatus(nk,msg,active){
 
 // ══ WEBHOOK / N8N-SYNC ═══════════════════════════════════════════════════════
 // n8n Webhook-URL hier eintragen (nach Einrichtung ersetzen):
-const N8N_WEBHOOK_URL='https://n8n.srv1077415.hstgr.cloud/webhook/da482da5-703c-429d-bf59-0eb6c79d66b2';
+const N8N_WEBHOOK_URL='https://martinfromm.app.n8n.cloud/webhook/40c5f7fc-95f3-4a31-b684-f617e9da2506';
 
 function sendWebhook(nk,custId,wkKey,di){
   const btn=document.getElementById(`nd-wh-btn-${nk}`);
@@ -1649,7 +1649,7 @@ if(activeWkKey){renderTour();updKPIs();updSyncBar();}
   btn.disabled = true;
 
   try {
-    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/aa94d526-d0a2-46e8-b95f-8774bf2ed20f', {
+    const res = await fetch('https://martinfromm.app.n8n.cloud/webhook/40c5f7fc-95f3-4a31-b684-f617e9da2506', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ arztName: name, einrichtung, ort })
@@ -1699,7 +1699,7 @@ document.getElementById('yr-label').textContent=viewYr2;
   btn.textContent = '⏳ Recherche läuft…';
   btn.disabled = true;
   try {
-    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/65658d2d-fb07-4eea-b13d-5faa4c4351c4', {
+    const res = await fetch('https://martinfromm.app.n8n.cloud/webhook/40c5f7fc-95f3-4a31-b684-f617e9da2506', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ arztName: name, einrichtung, ort })
@@ -1733,7 +1733,7 @@ if (!aktionenP) {
   btn.textContent = '⏳ Analyse läuft…';
   btn.disabled = true;
   try {
-    const res = await fetch('https://n8n.srv1077415.hstgr.cloud/webhook/40c5f7fc-95f3-4a31-b684-f617e9da2506', {
+    const res = await fetch('https://martinfromm.app.n8n.cloud/webhook/40c5f7fc-95f3-4a31-b684-f617e9da2506', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ arztName: name, einrichtung, ort })
